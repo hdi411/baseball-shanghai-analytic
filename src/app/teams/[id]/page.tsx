@@ -324,7 +324,12 @@ export default function TeamPage() {
                         <span className="text-sm font-medium text-white">
                           {p.battingOrder}棒 · #{p.number} {p.name}
                         </span>
-                        {existing && <span className="text-xs ml-auto" style={{ color: "#64748b" }}>已存在</span>}
+                        <span className="text-xs ml-auto" style={{ color: "#64748b" }}>
+                          {p.atBats.length}打席
+                          {p.atBats.filter((ab: AtBat) => ab.pitchZone !== undefined).length > 0 &&
+                            ` · ${p.atBats.filter((ab: AtBat) => ab.pitchZone !== undefined).length}位置`}
+                          {existing ? " · 已存在" : ""}
+                        </span>
                       </label>
                     );
                   })}

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { getTeam, deleteChart, deleteGameStat } from "@/lib/store";
 import { getFile } from "@/lib/db";
-import type { Team, Player, ChartFile, ChartCategory, GameStat } from "@/lib/types";
+import type { Team, Player, ChartFile, ChartCategory, GameStat, AtBat } from "@/lib/types";
 import { CHART_TYPE_LABELS, CHART_TYPE_EN, CHART_CATEGORY } from "@/lib/types";
 
 type Tab = "batting" | "pitching" | "scouting" | "stats";
@@ -15,6 +15,89 @@ const TAB_LABELS: Record<Tab, string> = {
   scouting: "球探图表",
   stats: "打席数据",
 };
+
+
+// ─── Pitch Location Heat Map ─────────────────────────────────────────────────
+function PitchHeatMap({ atBats }: { atBats: AtBat[] }) {
+  const zoned = atBats.filter((ab) => ab.pitchZone !== undefined && ab.pitchZone >= 0 && ab.pitchZone <= 8);
+  const total = zoned.length;
+  if (total === 0) return null;
+
+  const counts = Array(9).fill(0);
+  zoned.forEach((ab) => { counts[ab.pitchZone!]++; });
+  const maxCount = Math.max(...counts);
+
+  const rowLabels = ["高", "中", "低"];
+  const colLabels = ["内角", "中间", "外角"];
+
+  return (
+    <div className="card p-5 mb-6">
+      <h3 className="font-semibold text-white mb-1">投球位置分布</h3>
+      <p className="text-xs mb-4" style={{ color: "#64748b" }}>首球落点 · 共 {total} 球</p>
+      <div className="flex gap-4 items-start justify-center">
+        {/* Row labels */}
+        <div className="flex flex-col" style={{ gap: 4, paddingTop: 24 }}>
+          {rowLabels.map((l) => (
+            <div key={l} className="flex items-center justify-center text-xs"
+              style={{ height: 64, color: "#64748b", width: 20 }}>{l}</div>
+          ))}
+        </div>
+        {/* Grid */}
+        <div>
+          {/* Column labels */}
+          <div className="flex mb-1" style={{ gap: 4 }}>
+            {colLabels.map((l) => (
+              <div key={l} className="text-center text-xs" style={{ width: 64, color: "#64748b" }}>{l}</div>
+            ))}
+          </div>
+          {/* Zone cells */}
+          <div className="rounded-lg overflow-hidden" style={{ border: "2px solid #334155" }}>
+            {[0, 1, 2].map((row) => (
+              <div key={row} className="flex" style={{ borderBottom: row < 2 ? "1px dashed #475569" : "none" }}>
+                {[0, 1, 2].map((col) => {
+                  const zone = row * 3 + col;
+                  const count = counts[zone];
+                  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                  const intensity = maxCount > 0 ? count / maxCount : 0;
+                  const alpha = count > 0 ? 0.12 + intensity * 0.68 : 0;
+                  const bg = count > 0 ? `rgba(34,197,94,${alpha.toFixed(2)})` : "#0f172a";
+                  const textColor = intensity > 0.6 ? "#fff" : intensity > 0.2 ? "#bbf7d0" : "#94a3b8";
+                  return (
+                    <div key={col} className="flex flex-col items-center justify-center"
+                      style={{
+                        width: 64, height: 64,
+                        background: bg,
+                        borderRight: col < 2 ? "1px dashed #475569" : "none",
+                        transition: "background 0.2s",
+                      }}>
+                      <span className="font-bold text-base" style={{ color: textColor }}>{pct}%</span>
+                      <span className="text-xs" style={{ color: count > 0 ? "#94a3b8" : "#334155" }}>{count}球</span>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Legend */}
+        <div className="flex flex-col gap-2 text-xs" style={{ color: "#64748b", paddingTop: 24 }}>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-sm" style={{ background: "rgba(34,197,94,0.8)" }} />
+            <span>高频</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-sm" style={{ background: "rgba(34,197,94,0.3)" }} />
+            <span>低频</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-sm" style={{ background: "#0f172a", border: "1px solid #334155" }} />
+            <span>无</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function PlayerPage() {
   const params = useParams<{ id: string; playerId: string }>();
@@ -218,6 +301,7 @@ export default function PlayerPage() {
                   <span>好球 {fpsCount} 次</span>
                 </div>
               </div>
+              <PitchHeatMap atBats={allAtBats} />
               <div className="space-y-4">
                 {[...gameStats].reverse().map((stat) => {
                   const gameFps = stat.atBats.filter(a => a.firstPitchStrike).length;
@@ -239,16 +323,26 @@ export default function PlayerPage() {
                           className="text-red-400 hover:text-red-300 text-sm opacity-60 hover:opacity-100">🗑</button>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {stat.atBats.map((ab, i) => (
-                          <div key={i} className="flex flex-col items-center gap-1">
-                            <div className="px-2 py-1 rounded text-xs font-mono text-white"
-                              style={{ background: "#1e293b", border: "1px solid #334155", minWidth: 36, textAlign: "center" }}>
-                              {ab.result || "—"}
+                        {stat.atBats.map((ab, i) => {
+                          const zoneRow = ab.pitchZone !== undefined ? Math.floor(ab.pitchZone / 3) : null;
+                          const zoneCol = ab.pitchZone !== undefined ? ab.pitchZone % 3 : null;
+                          const zoneLabel = ab.pitchZone !== undefined
+                            ? `${["高","中","低"][zoneRow!]}${["内","中","外"][zoneCol!]}`
+                            : null;
+                          return (
+                            <div key={i} className="flex flex-col items-center gap-1">
+                              <div className="px-2 py-1 rounded text-xs font-mono text-white"
+                                style={{ background: "#1e293b", border: "1px solid #334155", minWidth: 36, textAlign: "center" }}>
+                                {ab.result || "—"}
+                              </div>
+                              <div className={`w-2 h-2 rounded-full ${ab.firstPitchStrike ? "bg-green-500" : "bg-red-500"}`}
+                                title={`${ab.firstPitchStrike ? "首球好球" : "首球坏球"}${zoneLabel ? " · " + zoneLabel : ""}`} />
+                              {zoneLabel && (
+                                <span className="text-center" style={{ fontSize: 9, color: "#64748b", lineHeight: 1 }}>{zoneLabel}</span>
+                              )}
                             </div>
-                            <div className={`w-2 h-2 rounded-full ${ab.firstPitchStrike ? "bg-green-500" : "bg-red-500"}`}
-                              title={ab.firstPitchStrike ? "首球好球" : "首球坏球"} />
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   );

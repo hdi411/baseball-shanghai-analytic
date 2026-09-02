@@ -35,6 +35,7 @@ export type Position = typeof POSITIONS[number];
 export interface AtBat {
   result: string;           // "1-3", "6H", "7HR", "K", "BB", ">" etc.
   firstPitchStrike: boolean; // true = Y, false = N
+  pitchZone?: number;        // 0-8: 3×3 zone grid row-major (0=高内 1=高中 2=高外 / 3=中内 4=中 5=中外 / 6=低内 7=低中 8=低外)
 }
 
 export interface GameStat {
