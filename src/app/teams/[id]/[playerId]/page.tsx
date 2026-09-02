@@ -123,17 +123,17 @@ function FirstPitchStrikeGauge({ allAtBats }: { allAtBats: AtBat[] }) {
 }
 
 // ── Spray Chart ──────────────────────────────────────────────────────────────
-// Fielder positions in SVG space (300 × 280; home plate at bottom-center)
+// Fielder positions in SVG space (320 × 300; home plate at bottom-center)
 const FIELD_POS: Record<number, [number, number]> = {
-  1: [150, 183], // P
-  2: [150, 262], // C
-  3: [216, 198], // 1B
-  4: [178, 143], // 2B
-  5: [84,  198], // 3B
-  6: [122, 152], // SS
-  7: [54,  88],  // LF
-  8: [150, 52],  // CF
-  9: [246, 88],  // RF
+  1: [160, 200], // P
+  2: [160, 288], // C
+  3: [235, 215], // 1B
+  4: [188, 158], // 2B
+  5: [85,  215], // 3B
+  6: [122, 163], // SS
+  7: [52,  75],  // LF
+  8: [160, 38],  // CF
+  9: [268, 75],  // RF
 };
 
 function isHitResult(r: string) {
@@ -174,36 +174,39 @@ function SprayChart({ allAtBats }: { allAtBats: AtBat[] }) {
 
   return (
     <div>
-      <svg width="300" height="280" viewBox="0 0 300 280"
-        style={{ background: "#111827", borderRadius: 8, display: "block" }}>
-        {/* Outfield grass arc */}
-        <path d="M 30 252 A 170 170 0 0 1 270 252"
-          fill="#14532d" fillOpacity="0.25" stroke="#374151" strokeWidth="1.5" />
+      <svg width="320" height="300" viewBox="0 0 320 300"
+        style={{ background: "#0f172a", borderRadius: 8, display: "block" }}>
+        {/* Outfield grass — fan shape from home plate */}
+        <path d="M 160 284 L 18 95 Q 160 -15 302 95 Z"
+          fill="#14532d" fillOpacity="0.35" />
+        {/* Outfield wall arc */}
+        <path d="M 18 95 Q 160 -15 302 95"
+          fill="none" stroke="#4b5563" strokeWidth="2" />
         {/* Infield dirt */}
-        <polygon points="150,250 216,194 150,138 84,194"
-          fill="#78350f" fillOpacity="0.18" stroke="#6b7280" strokeWidth="1.5" />
+        <polygon points="160,284 235,215 160,145 85,215"
+          fill="#78350f" fillOpacity="0.35" stroke="#6b7280" strokeWidth="1.5" />
         {/* Foul lines */}
-        <line x1="150" y1="258" x2="30"  y2="252" stroke="#4b5563" strokeWidth="1.5" strokeDasharray="4 3"/>
-        <line x1="150" y1="258" x2="270" y2="252" stroke="#4b5563" strokeWidth="1.5" strokeDasharray="4 3"/>
+        <line x1="160" y1="284" x2="18"  y2="95" stroke="#6b7280" strokeWidth="1.5" strokeDasharray="5 4"/>
+        <line x1="160" y1="284" x2="302" y2="95" stroke="#6b7280" strokeWidth="1.5" strokeDasharray="5 4"/>
         {/* Pitcher mound */}
-        <circle cx="150" cy="188" r="7" fill="#292524" stroke="#6b7280" strokeWidth="1"/>
+        <circle cx="160" cy="200" r="8" fill="#292524" stroke="#6b7280" strokeWidth="1.2"/>
         {/* Home plate */}
-        <polygon points="144,268 156,268 158,261 150,257 142,261" fill="#9ca3af"/>
+        <polygon points="153,291 167,291 169,283 160,279 151,283" fill="#d1d5db"/>
         {/* Base bags */}
-        <rect x="210" y="190" width="12" height="12" rx="1" fill="#9ca3af" transform="rotate(45 216 196)"/>
-        <rect x="144" y="132" width="12" height="12" rx="1" fill="#9ca3af" transform="rotate(45 150 138)"/>
-        <rect x="78"  y="190" width="12" height="12" rx="1" fill="#9ca3af" transform="rotate(45 84 196)"/>
+        <rect x="229" y="209" width="12" height="12" rx="1" fill="#e5e7eb" transform="rotate(45 235 215)"/>
+        <rect x="154" y="139" width="12" height="12" rx="1" fill="#e5e7eb" transform="rotate(45 160 145)"/>
+        <rect x="79"  y="209" width="12" height="12" rx="1" fill="#e5e7eb" transform="rotate(45 85 215)"/>
         {/* Outfield labels */}
-        <text x="54"  y="74" textAnchor="middle" fontSize="10" fill="#6b7280" fontFamily="sans-serif">LF</text>
-        <text x="150" y="38" textAnchor="middle" fontSize="10" fill="#6b7280" fontFamily="sans-serif">CF</text>
-        <text x="246" y="74" textAnchor="middle" fontSize="10" fill="#6b7280" fontFamily="sans-serif">RF</text>
+        <text x="42"  y="62" textAnchor="middle" fontSize="11" fill="#6b7280" fontFamily="sans-serif">LF</text>
+        <text x="160" y="22" textAnchor="middle" fontSize="11" fill="#6b7280" fontFamily="sans-serif">CF</text>
+        <text x="278" y="62" textAnchor="middle" fontSize="11" fill="#6b7280" fontFamily="sans-serif">RF</text>
         {/* Dots */}
         {dots.map((d, i) => (
-          <circle key={i} cx={d.x} cy={d.y} r="5.5"
+          <circle key={i} cx={d.x} cy={d.y} r="6"
             fill={d.hit ? "#22c55e" : "#6b7280"}
-            fillOpacity="0.88"
+            fillOpacity="0.9"
             stroke={d.hit ? "#15803d" : "#374151"}
-            strokeWidth="1"/>
+            strokeWidth="1.2"/>
         ))}
       </svg>
 
