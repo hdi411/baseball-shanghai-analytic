@@ -2,17 +2,18 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { getTeam, deleteChart } from "@/lib/store";
+import { getTeam, deleteChart, deleteGameStat } from "@/lib/store";
 import { getFile } from "@/lib/db";
-import type { Team, Player, ChartFile, ChartCategory } from "@/lib/types";
+import type { Team, Player, ChartFile, ChartCategory, GameStat } from "@/lib/types";
 import { CHART_TYPE_LABELS, CHART_TYPE_EN, CHART_CATEGORY } from "@/lib/types";
 
-type Tab = "batting" | "pitching" | "scouting";
+type Tab = "batting" | "pitching" | "scouting" | "stats";
 
 const TAB_LABELS: Record<Tab, string> = {
-  batting: "打擊圖表",
-  pitching: "投球圖表",
-  scouting: "球探圖表",
+  batting: "打击图表",
+  pitching: "投球图表",
+  scouting: "球探图表",
+  stats: "打席数据",
 };
 
 export default function PlayerPage() {
@@ -33,7 +34,6 @@ export default function PlayerPage() {
 
   useEffect(() => { reload(); }, [reload]);
 
-  // Load PDF thumbnails for visible charts
   useEffect(() => {
     if (!player) return;
     const visible = player.charts.filter((c) => (CHART_CATEGORY[c.type] as ChartCategory) === tab);
@@ -52,16 +52,27 @@ export default function PlayerPage() {
   }
 
   function handleDelete(chartId: string) {
-    if (!confirm("刪除這張圖表？")) return;
+    if (!confirm("删除这张图表？")) return;
     deleteChart(params.id, params.playerId, chartId);
     setViewingChart(null);
     setViewUrl(null);
     reload();
   }
 
+  function handleDeleteStat(statId: string) {
+    if (!confirm("删除这条打席记录？")) return;
+    deleteGameStat(params.id, params.playerId, statId);
+    reload();
+  }
+
   if (!team || !player) return null;
 
   const chartsForTab = player.charts.filter((c) => (CHART_CATEGORY[c.type] as ChartCategory) === tab);
+  const gameStats: GameStat[] = player.gameStats ?? [];
+  const allAtBats = gameStats.flatMap(g => g.atBats);
+  const totalAtBats = allAtBats.length;
+  const fpsCount = allAtBats.filter(a => a.firstPitchStrike).length;
+  const fpsPct = totalAtBats > 0 ? Math.round((fpsCount / totalAtBats) * 100) : null;
 
   return (
     <div className="min-h-screen">
@@ -81,7 +92,7 @@ export default function PlayerPage() {
             </div>
           </div>
           <Link href={`/upload?teamId=${team.id}&playerId=${player.id}`} className="btn btn-primary text-sm">
-            + 上傳圖表
+            + 上传图表
           </Link>
         </div>
       </nav>
@@ -97,11 +108,11 @@ export default function PlayerPage() {
             <h1 className="text-2xl font-bold text-white">{player.name}</h1>
             <div className="flex items-center gap-3 mt-1">
               <span className="badge text-white" style={{ background: "#334155" }}>{player.position}</span>
-              {player.bats && <span className="text-sm" style={{ color: "#64748b" }}>打擊：{player.bats === "R" ? "右打" : player.bats === "L" ? "左打" : "兩打"}</span>}
+              {player.bats && <span className="text-sm" style={{ color: "#64748b" }}>打击：{player.bats === "R" ? "右打" : player.bats === "L" ? "左打" : "两打"}</span>}
               {player.throws && <span className="text-sm" style={{ color: "#64748b" }}>投球：{player.throws === "R" ? "右投" : "左投"}</span>}
             </div>
           </div>
-          <div className="ml-auto flex gap-4">
+          <div className="ml-auto flex gap-6">
             {(["batting","pitching","scouting"] as Tab[]).map((cat) => (
               <div key={cat} className="text-center">
                 <div className="text-xl font-bold text-white">
@@ -110,71 +121,160 @@ export default function PlayerPage() {
                 <div className="text-xs" style={{ color: "#64748b" }}>{TAB_LABELS[cat]}</div>
               </div>
             ))}
+            <div className="text-center">
+              <div className="text-xl font-bold text-white">{gameStats.length}</div>
+              <div className="text-xs" style={{ color: "#64748b" }}>打席场次</div>
+            </div>
+            {fpsPct !== null && (
+              <div className="text-center">
+                <div className="text-xl font-bold text-green-400">{fpsPct}%</div>
+                <div className="text-xs" style={{ color: "#64748b" }}>首球好球率</div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* TABS */}
         <div className="flex gap-2 mb-6 p-1 rounded-lg" style={{ background: "#1e293b", border: "1px solid #334155", width: "fit-content" }}>
-          {(["batting","pitching","scouting"] as Tab[]).map((t) => (
+          {(["batting","pitching","scouting","stats"] as Tab[]).map((t) => (
             <button key={t} className={`tab ${tab === t ? "active" : ""}`} onClick={() => setTab(t)}>
               {TAB_LABELS[t]}
-              <span className="ml-1 text-xs opacity-70">
-                ({player.charts.filter(c => (CHART_CATEGORY[c.type] as ChartCategory) === t).length})
-              </span>
+              {t !== "stats" && (
+                <span className="ml-1 text-xs opacity-70">
+                  ({player.charts.filter(c => (CHART_CATEGORY[c.type] as ChartCategory) === t).length})
+                </span>
+              )}
+              {t === "stats" && (
+                <span className="ml-1 text-xs opacity-70">({gameStats.length})</span>
+              )}
             </button>
           ))}
         </div>
 
-        {/* CHARTS GRID */}
-        {chartsForTab.length === 0 ? (
-          <div className="text-center py-16" style={{ color: "#64748b" }}>
-            <div className="text-5xl mb-3">📄</div>
-            <p className="text-lg mb-1">尚無{TAB_LABELS[tab]}</p>
-            <p className="text-sm mb-4">點擊右上角「上傳圖表」新增</p>
-            <Link href={`/upload?teamId=${team.id}&playerId=${player.id}`} className="btn btn-primary inline-flex">
-              上傳圖表
-            </Link>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {chartsForTab.map((chart) => (
-              <div key={chart.id} className="card overflow-hidden group cursor-pointer" onClick={() => handleView(chart)}>
-                {/* PDF preview */}
-                <div className="h-40 relative" style={{ background: "#0f172a" }}>
-                  {pdfUrls[chart.id] ? (
-                    <iframe
-                      src={pdfUrls[chart.id]}
-                      className="w-full h-full border-0 pointer-events-none"
-                      title={chart.fileName}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-4xl" style={{ color: "#334155" }}>
-                      📋
+        {/* CHART TABS */}
+        {tab !== "stats" && (
+          chartsForTab.length === 0 ? (
+            <div className="text-center py-16" style={{ color: "#64748b" }}>
+              <div className="text-5xl mb-3">📄</div>
+              <p className="text-lg mb-1">暂无{TAB_LABELS[tab]}</p>
+              <p className="text-sm mb-4">点击右上角「上传图表」新增</p>
+              <Link href={`/upload?teamId=${team.id}&playerId=${player.id}`} className="btn btn-primary inline-flex">
+                上传图表
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {chartsForTab.map((chart) => (
+                <div key={chart.id} className="card overflow-hidden group cursor-pointer" onClick={() => handleView(chart)}>
+                  <div className="h-40 relative" style={{ background: "#0f172a" }}>
+                    {pdfUrls[chart.id] ? (
+                      <iframe src={pdfUrls[chart.id]} className="w-full h-full border-0 pointer-events-none" title={chart.fileName} />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-4xl" style={{ color: "#334155" }}>📋</div>
+                    )}
+                    <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity" />
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="bg-white text-black text-sm font-medium px-3 py-1 rounded-full">查看</span>
                     </div>
-                  )}
-                  <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity" />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="bg-white text-black text-sm font-medium px-3 py-1 rounded-full">查看</span>
+                  </div>
+                  <div className="p-3">
+                    <div className="text-xs font-medium text-white mb-1 truncate">{CHART_TYPE_LABELS[chart.type]}</div>
+                    <div className="text-xs truncate" style={{ color: "#64748b" }}>
+                      {chart.opponent && <span>{chart.opponent} · </span>}
+                      {chart.gameDate && <span>{chart.gameDate} · </span>}
+                      {new Date(chart.uploadedAt).toLocaleDateString("zh-CN")}
+                    </div>
                   </div>
                 </div>
-                <div className="p-3">
-                  <div className="text-xs font-medium text-white mb-1 truncate">{CHART_TYPE_LABELS[chart.type]}</div>
-                  <div className="text-xs truncate" style={{ color: "#64748b" }}>
-                    {chart.opponent && <span>{chart.opponent} · </span>}
-                    {chart.gameDate && <span>{chart.gameDate} · </span>}
-                    {new Date(chart.uploadedAt).toLocaleDateString("zh-TW")}
+              ))}
+            </div>
+          )
+        )}
+
+        {/* STATS TAB */}
+        {tab === "stats" && (
+          gameStats.length === 0 ? (
+            <div className="text-center py-16" style={{ color: "#64748b" }}>
+              <div className="text-5xl mb-3">📊</div>
+              <p className="text-lg mb-1">暂无打席数据</p>
+              <p className="text-sm">通过「🤖 智能导入」上传记录表 PDF 可自动提取打席数据</p>
+            </div>
+          ) : (
+            <>
+              {/* Summary card */}
+              <div className="card p-5 mb-6">
+                <h3 className="font-semibold text-white mb-4">首球好球统计</h3>
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="text-center p-3 rounded-lg" style={{ background: "#0f172a" }}>
+                    <div className="text-2xl font-bold text-white">{totalAtBats}</div>
+                    <div className="text-xs mt-1" style={{ color: "#64748b" }}>总打席数</div>
                   </div>
+                  <div className="text-center p-3 rounded-lg" style={{ background: "#0f172a" }}>
+                    <div className="text-2xl font-bold text-green-400">{fpsCount}</div>
+                    <div className="text-xs mt-1" style={{ color: "#64748b" }}>首球好球</div>
+                  </div>
+                  <div className="text-center p-3 rounded-lg" style={{ background: "#0f172a" }}>
+                    <div className="text-2xl font-bold text-blue-400">{fpsPct}%</div>
+                    <div className="text-xs mt-1" style={{ color: "#64748b" }}>好球率</div>
+                  </div>
+                </div>
+                {/* Progress bar */}
+                <div className="h-3 rounded-full overflow-hidden" style={{ background: "#1e293b" }}>
+                  <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${fpsPct ?? 0}%` }} />
+                </div>
+                <div className="flex justify-between text-xs mt-1" style={{ color: "#64748b" }}>
+                  <span>坏球 {totalAtBats - fpsCount} 次</span>
+                  <span>好球 {fpsCount} 次</span>
                 </div>
               </div>
-            ))}
-          </div>
+
+              {/* Per-game breakdown */}
+              <div className="space-y-4">
+                {[...gameStats].reverse().map((stat) => {
+                  const gameFps = stat.atBats.filter(a => a.firstPitchStrike).length;
+                  const gamePct = stat.atBats.length > 0 ? Math.round((gameFps / stat.atBats.length) * 100) : 0;
+                  return (
+                    <div key={stat.id} className="card p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <div className="font-medium text-white">
+                            {stat.opponent ? `vs ${stat.opponent}` : "比赛记录"}
+                            <span className="ml-2 text-xs" style={{ color: "#64748b" }}>
+                              {stat.battingOrder}棒
+                            </span>
+                          </div>
+                          <div className="text-xs mt-0.5" style={{ color: "#64748b" }}>
+                            {stat.gameDate || new Date(stat.uploadedAt).toLocaleDateString("zh-CN")}
+                            {" · "}{stat.atBats.length} 打席 · 首球好球率 {gamePct}%
+                          </div>
+                        </div>
+                        <button onClick={() => handleDeleteStat(stat.id)}
+                          className="text-red-400 hover:text-red-300 text-sm opacity-60 hover:opacity-100">🗑</button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {stat.atBats.map((ab, i) => (
+                          <div key={i} className="flex flex-col items-center gap-1">
+                            <div className="px-2 py-1 rounded text-xs font-mono text-white"
+                              style={{ background: "#1e293b", border: "1px solid #334155", minWidth: 36, textAlign: "center" }}>
+                              {ab.result || "—"}
+                            </div>
+                            <div className={`w-2 h-2 rounded-full ${ab.firstPitchStrike ? "bg-green-500" : "bg-red-500"}`}
+                              title={ab.firstPitchStrike ? "首球好球" : "首球坏球"} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )
         )}
       </div>
 
       {/* PDF VIEWER MODAL */}
       {viewingChart && (
         <div className="fixed inset-0 z-50 flex flex-col" style={{ background: "rgba(0,0,0,0.95)" }}>
-          {/* Viewer header */}
           <div className="flex items-center justify-between px-4 py-3" style={{ background: "#1e293b", borderBottom: "1px solid #334155" }}>
             <div>
               <div className="font-semibold text-white text-sm">{CHART_TYPE_LABELS[viewingChart.type]}</div>
@@ -185,21 +285,15 @@ export default function PlayerPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                className="btn btn-danger text-sm"
-                onClick={() => handleDelete(viewingChart.id)}
-              >🗑 刪除</button>
-              <button className="btn btn-ghost text-sm" onClick={() => { setViewingChart(null); setViewUrl(null); }}>✕ 關閉</button>
+              <button className="btn btn-danger text-sm" onClick={() => handleDelete(viewingChart.id)}>🗑 删除</button>
+              <button className="btn btn-ghost text-sm" onClick={() => { setViewingChart(null); setViewUrl(null); }}>✕ 关闭</button>
             </div>
           </div>
-          {/* PDF */}
           <div className="flex-1 overflow-hidden">
             {viewUrl ? (
               <iframe src={viewUrl} className="w-full h-full border-0" title="PDF viewer" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center" style={{ color: "#64748b" }}>
-                載入中...
-              </div>
+              <div className="w-full h-full flex items-center justify-center" style={{ color: "#64748b" }}>载入中...</div>
             )}
           </div>
         </div>

@@ -32,6 +32,20 @@ export const POSITIONS = [
 ] as const;
 export type Position = typeof POSITIONS[number];
 
+export interface AtBat {
+  result: string;           // "1-3", "6H", "7HR", "K", "BB", ">" etc.
+  firstPitchStrike: boolean; // true = Y, false = N
+}
+
+export interface GameStat {
+  id: string;
+  gameDate: string;
+  opponent: string;
+  battingOrder: number;
+  atBats: AtBat[];
+  uploadedAt: string;
+}
+
 export interface ChartFile {
   id: string;
   type: ChartType;
@@ -49,6 +63,7 @@ export interface Player {
   throws?: "R" | "L";
   bats?: "R" | "L" | "S";
   charts: ChartFile[];
+  gameStats: GameStat[];
 }
 
 export interface Team {

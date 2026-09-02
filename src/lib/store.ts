@@ -1,5 +1,5 @@
 // localStorage wrapper for team/player metadata (no large binary)
-import type { Team, Player, ChartFile, Position } from "./types";
+import type { Team, Player, ChartFile, GameStat, Position } from "./types";
 
 const KEY = "baseball_teams_v1";
 
@@ -73,7 +73,7 @@ export function addPlayer(
   const teams = getTeams();
   const team = teams.find((t) => t.id === teamId);
   if (!team) throw new Error("Team not found");
-  const player: Player = { ...data, id: crypto.randomUUID(), charts: [] };
+  const player: Player = { ...data, id: crypto.randomUUID(), charts: [], gameStats: [] };
   team.players.push(player);
   saveTeams(teams);
   return player;
@@ -114,5 +114,36 @@ export function deleteChart(teamId: string, playerId: string, chartId: string): 
   const player = team.players.find((p) => p.id === playerId);
   if (!player) return;
   player.charts = player.charts.filter((c) => c.id !== chartId);
+  saveTeams(teams);
+}
+
+export function addGameStat(
+  teamId: string,
+  playerId: string,
+  stat: Omit<GameStat, "id" | "uploadedAt">
+): GameStat {
+  const teams = getTeams();
+  const team = teams.find((t) => t.id === teamId);
+  if (!team) throw new Error("Team not found");
+  const player = team.players.find((p) => p.id === playerId);
+  if (!player) throw new Error("Player not found");
+  if (!player.gameStats) player.gameStats = [];
+  const newStat: GameStat = {
+    ...stat,
+    id: crypto.randomUUID(),
+    uploadedAt: new Date().toISOString(),
+  };
+  player.gameStats.push(newStat);
+  saveTeams(teams);
+  return newStat;
+}
+
+export function deleteGameStat(teamId: string, playerId: string, statId: string): void {
+  const teams = getTeams();
+  const team = teams.find((t) => t.id === teamId);
+  if (!team) return;
+  const player = team.players.find((p) => p.id === playerId);
+  if (!player) return;
+  player.gameStats = (player.gameStats ?? []).filter((s) => s.id !== statId);
   saveTeams(teams);
 }

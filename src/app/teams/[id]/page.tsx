@@ -2,8 +2,8 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
-import { getTeam, addPlayer, deletePlayer } from "@/lib/store";
-import type { Team, Player, Position } from "@/lib/types";
+import { getTeam, addPlayer, deletePlayer, addGameStat } from "@/lib/store";
+import type { Team, Player, Position, AtBat } from "@/lib/types";
 import { POSITIONS } from "@/lib/types";
 
 const POSITION_COLORS: Record<string, string> = {
@@ -16,6 +16,7 @@ interface ParsedPlayer {
   battingOrder: number;
   name: string;
   number: string;
+  atBats: AtBat[];
   selected: boolean;
 }
 
@@ -30,6 +31,8 @@ export default function TeamPage() {
   // Smart import state
   const [showImport, setShowImport] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
+  const [importDate, setImportDate] = useState("");
+  const [importOpponent, setImportOpponent] = useState("");
   const [parsing, setParsing] = useState(false);
   const [parsedPlayers, setParsedPlayers] = useState<ParsedPlayer[]>([]);
   const [parseError, setParseError] = useState("");
@@ -80,9 +83,9 @@ export default function TeamPage() {
       if (data.error) throw new Error(data.error);
       const existing = new Set(team?.players.map(p => p.name) ?? []);
       setParsedPlayers(
-        (data.players as { battingOrder: number; name: string; number: string }[])
-          .filter(p => p.name && !existing.has(p.name))
-          .map(p => ({ ...p, selected: true }))
+        (data.players as { battingOrder: number; name: string; number: string; atBats: AtBat[] }[])
+          .filter(p => p.name)
+          .map(p => ({ ...p, atBats: p.atBats ?? [], selected: !existing.has(p.name) }))
       );
     } catch (err) {
       setParseError("解析失败，请重试");
@@ -92,9 +95,27 @@ export default function TeamPage() {
   }
 
   async function handleImport() {
+    if (!team) return;
     setImporting(true);
+    const currentPlayers = team.players;
     for (const p of parsedPlayers.filter(p => p.selected)) {
-      addPlayer(params.id, { name: p.name, number: p.number, position: "P" });
+      const existing = currentPlayers.find(ep => ep.name === p.name);
+      let playerId: string;
+      if (existing) {
+        playerId = existing.id;
+      } else {
+        const newP = addPlayer(params.id, { name: p.name, number: p.number, position: "P" });
+        playerId = newP.id;
+      }
+      // Save game stats if atBats data available
+      if (p.atBats && p.atBats.length > 0 && (importDate || importOpponent)) {
+        addGameStat(params.id, playerId, {
+          gameDate: importDate,
+          opponent: importOpponent,
+          battingOrder: p.battingOrder,
+          atBats: p.atBats,
+        });
+      }
     }
     reload();
     setImportDone(true);
@@ -104,6 +125,8 @@ export default function TeamPage() {
       setImportFile(null);
       setParsedPlayers([]);
       setImportDone(false);
+      setImportDate("");
+      setImportOpponent("");
     }, 1500);
   }
 
@@ -117,6 +140,7 @@ export default function TeamPage() {
   if (!team) return null;
 
   const totalCharts = team.players.reduce((s, p) => s + p.charts.length, 0);
+  const totalStats = team.players.reduce((s, p) => s + (p.gameStats?.length ?? 0), 0);
 
   return (
     <div className="min-h-screen">
@@ -143,11 +167,12 @@ export default function TeamPage() {
 
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* STATS */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-4 gap-4 mb-8">
           {[
             { label: "球员人数", value: team.players.length },
             { label: "投手", value: team.players.filter(p => p.position === "P").length },
             { label: "已上传图表", value: totalCharts },
+            { label: "打席记录", value: totalStats },
           ].map((s) => (
             <div key={s.label} className="card p-4 text-center">
               <div className="text-2xl font-bold text-white">{s.value}</div>
@@ -180,31 +205,44 @@ export default function TeamPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {filtered.map((player) => (
-              <Link key={player.id} href={`/teams/${team.id}/${player.id}`} className="block">
-                <div className="card p-4 hover:border-green-500 transition-all cursor-pointer group relative">
-                  <button onClick={(e) => handleDelete(e, player.id)}
-                    className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 text-lg leading-none">×</button>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm"
-                      style={{ background: POSITION_COLORS[player.position] ?? "#64748b" }}>
-                      #{player.number}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-white truncate">{player.name}</div>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="badge text-white text-xs" style={{ background: POSITION_COLORS[player.position] ?? "#64748b" }}>{player.position}</span>
-                        {player.bats && <span className="text-xs" style={{ color: "#64748b" }}>打:{player.bats}</span>}
-                        {player.throws && <span className="text-xs" style={{ color: "#64748b" }}>投:{player.throws}</span>}
+            {filtered.map((player) => {
+              const statsCount = player.gameStats?.length ?? 0;
+              const allAtBats = player.gameStats?.flatMap(g => g.atBats) ?? [];
+              const fpsPct = allAtBats.length > 0
+                ? Math.round((allAtBats.filter(a => a.firstPitchStrike).length / allAtBats.length) * 100)
+                : null;
+              return (
+                <Link key={player.id} href={`/teams/${team.id}/${player.id}`} className="block">
+                  <div className="card p-4 hover:border-green-500 transition-all cursor-pointer group relative">
+                    <button onClick={(e) => handleDelete(e, player.id)}
+                      className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 text-lg leading-none">×</button>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm"
+                        style={{ background: POSITION_COLORS[player.position] ?? "#64748b" }}>
+                        #{player.number}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-white truncate">{player.name}</div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="badge text-white text-xs" style={{ background: POSITION_COLORS[player.position] ?? "#64748b" }}>{player.position}</span>
+                          {player.bats && <span className="text-xs" style={{ color: "#64748b" }}>打:{player.bats}</span>}
+                          {player.throws && <span className="text-xs" style={{ color: "#64748b" }}>投:{player.throws}</span>}
+                        </div>
                       </div>
                     </div>
+                    <div className="mt-3 flex items-center gap-3 text-xs" style={{ color: "#64748b" }}>
+                      <span>{player.charts.length > 0 ? `${player.charts.length} 张图表` : "暂无图表"}</span>
+                      {statsCount > 0 && (
+                        <span style={{ color: "#94a3b8" }}>
+                          {statsCount} 场数据
+                          {fpsPct !== null && <span className="ml-1 text-green-400">首球好球 {fpsPct}%</span>}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="mt-3 text-xs" style={{ color: "#64748b" }}>
-                    {player.charts.length > 0 ? `${player.charts.length} 张图表` : "暂无图表"}
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
@@ -259,7 +297,7 @@ export default function TeamPage() {
       {showImport && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.85)" }}
           onClick={(e) => { if (e.target === e.currentTarget) setShowImport(false); }}>
-          <div className="card w-full max-w-lg p-6">
+          <div className="card w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">🤖 智能导入球员</h2>
               <button onClick={() => setShowImport(false)} className="text-gray-400 hover:text-white text-xl">×</button>
@@ -272,21 +310,45 @@ export default function TeamPage() {
               </div>
             ) : parsedPlayers.length > 0 ? (
               <>
-                <p className="text-sm mb-4" style={{ color: "#94a3b8" }}>
-                  从 PDF 中识别到以下球员，已过滤已存在的，勾选要导入的：
+                {/* Game metadata */}
+                <div className="grid grid-cols-2 gap-3 mb-4 p-3 rounded-lg" style={{ background: "#0f172a", border: "1px solid #334155" }}>
+                  <div>
+                    <label className="block text-xs mb-1" style={{ color: "#94a3b8" }}>比赛日期（选填）</label>
+                    <input className="input text-sm" type="date" value={importDate} onChange={e => setImportDate(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="block text-xs mb-1" style={{ color: "#94a3b8" }}>对手球队（选填）</label>
+                    <input className="input text-sm" placeholder="上海虎鲸" value={importOpponent} onChange={e => setImportOpponent(e.target.value)} />
+                  </div>
+                </div>
+
+                <p className="text-sm mb-3" style={{ color: "#94a3b8" }}>
+                  从 PDF 中识别到以下球员，勾选要导入的（已存在的球员会更新打席数据）：
                 </p>
-                <div className="space-y-2 mb-5 max-h-72 overflow-y-auto">
-                  {parsedPlayers.map((p, i) => (
-                    <label key={i} className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"
-                      style={{ background: "#0f172a", border: "1px solid #334155" }}>
-                      <input type="checkbox" checked={p.selected}
-                        onChange={() => setParsedPlayers(prev => prev.map((x, j) => j === i ? {...x, selected: !x.selected} : x))}
-                        className="w-4 h-4 accent-green-500" />
-                      <span className="text-sm font-medium text-white">
-                        {p.battingOrder}棒 · #{p.number} {p.name}
-                      </span>
-                    </label>
-                  ))}
+                <div className="space-y-2 mb-5 max-h-64 overflow-y-auto">
+                  {parsedPlayers.map((p, i) => {
+                    const existing = team.players.find(ep => ep.name === p.name);
+                    return (
+                      <label key={i} className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"
+                        style={{ background: "#0f172a", border: "1px solid #334155" }}>
+                        <input type="checkbox" checked={p.selected}
+                          onChange={() => setParsedPlayers(prev => prev.map((x, j) => j === i ? {...x, selected: !x.selected} : x))}
+                          className="w-4 h-4 accent-green-500" />
+                        <div className="flex-1">
+                          <span className="text-sm font-medium text-white">
+                            {p.battingOrder}棒 · #{p.number} {p.name}
+                          </span>
+                          {existing && <span className="ml-2 text-xs" style={{ color: "#64748b" }}>(已存在)</span>}
+                          {p.atBats.length > 0 && (
+                            <div className="text-xs mt-0.5" style={{ color: "#64748b" }}>
+                              {p.atBats.length} 打席 · 首球好球 {p.atBats.filter(a => a.firstPitchStrike).length}/{p.atBats.length}
+                              {" "}({Math.round(p.atBats.filter(a => a.firstPitchStrike).length / p.atBats.length * 100)}%)
+                            </div>
+                          )}
+                        </div>
+                      </label>
+                    );
+                  })}
                 </div>
                 <div className="flex gap-2">
                   <button onClick={resetImport} className="btn btn-ghost flex-1">重新上传</button>
@@ -299,7 +361,7 @@ export default function TeamPage() {
             ) : (
               <>
                 <p className="text-sm mb-4" style={{ color: "#94a3b8" }}>
-                  上传「投球位置首球好球记录表」PDF，AI 自动识别球员姓名和背号
+                  上传「投球位置首球好球记录表」PDF，AI 自动识别球员姓名、背号和每打席的首球好坏球数据
                 </p>
                 <div
                   className="rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-8 cursor-pointer mb-4"
