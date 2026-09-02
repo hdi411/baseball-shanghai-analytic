@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Team, Player, ChartFile, ChartCategory, GameStat, AtBat, PitchLocationStat, CHART_CATEGORY, CHART_TYPE_LABELS } from "@/lib/types";
 import { getTeam } from "@/lib/store";
+import { getFile } from "@/lib/db";
 
 // ── Pitch zone heat-map from Supabase pitch_location_stats ──────────────────
 function PitchZoneHeatMap({ stats }: { stats: PitchLocationStat[] }) {
@@ -395,9 +396,10 @@ export default function PlayerPage() {
                       <div
                         key={chart.id}
                         className="bg-gray-800 rounded-lg p-4 cursor-pointer hover:bg-gray-700 transition-colors"
-                        onClick={() => {
+                        onClick={async () => {
                           setSelectedChart(chart);
-                          setPdfUrl(chart.fileUrl);
+                          const url = await getFile(chart.id);
+                          setPdfUrl(url);
                         }}
                       >
                         <div className="text-sm font-medium truncate">{CHART_TYPE_LABELS[chart.type]}</div>
