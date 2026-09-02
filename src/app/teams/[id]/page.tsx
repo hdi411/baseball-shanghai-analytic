@@ -28,7 +28,6 @@ export default function TeamPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ name: "", number: "", position: "P" as Position, bats: "R" as "R"|"L"|"S", throws: "R" as "R"|"L" });
 
-  // Smart import state
   const [showImport, setShowImport] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importDate, setImportDate] = useState("");
@@ -40,8 +39,8 @@ export default function TeamPage() {
   const [importDone, setImportDone] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  function reload() {
-    const t = getTeam(params.id);
+  async function reload() {
+    const t = await getTeam(params.id);
     setTeam(t);
     if (!t) router.push("/");
   }
@@ -54,20 +53,20 @@ export default function TeamPage() {
     p.position.toLowerCase().includes(search.toLowerCase())
   );
 
-  function handleAdd(e: React.FormEvent) {
+  async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim()) return;
-    addPlayer(params.id, { name: form.name.trim(), number: form.number.trim(), position: form.position, throws: form.throws, bats: form.bats });
-    reload();
+    await addPlayer(params.id, { name: form.name.trim(), number: form.number.trim(), position: form.position, throws: form.throws, bats: form.bats });
+    await reload();
     setShowAdd(false);
     setForm({ name: "", number: "", position: "P", bats: "R", throws: "R" });
   }
 
-  function handleDelete(e: React.MouseEvent, playerId: string) {
+  async function handleDelete(e: React.MouseEvent, playerId: string) {
     e.preventDefault(); e.stopPropagation();
     if (!confirm("删除球员？")) return;
-    deletePlayer(params.id, playerId);
-    reload();
+    await deletePlayer(params.id, playerId);
+    await reload();
   }
 
   async function handleParse() {
@@ -104,12 +103,11 @@ export default function TeamPage() {
       if (existing) {
         playerId = existing.id;
       } else {
-        const newP = addPlayer(params.id, { name: p.name, number: p.number, position: "P" });
+        const newP = await addPlayer(params.id, { name: p.name, number: p.number, position: "P" });
         playerId = newP.id;
       }
-      // Save game stats if atBats data available
       if (p.atBats && p.atBats.length > 0 && (importDate || importOpponent)) {
-        addGameStat(params.id, playerId, {
+        await addGameStat(params.id, playerId, {
           gameDate: importDate,
           opponent: importOpponent,
           battingOrder: p.battingOrder,
@@ -117,7 +115,7 @@ export default function TeamPage() {
         });
       }
     }
-    reload();
+    await reload();
     setImportDone(true);
     setImporting(false);
     setTimeout(() => {
@@ -144,7 +142,6 @@ export default function TeamPage() {
 
   return (
     <div className="min-h-screen">
-      {/* NAV */}
       <nav style={{ background: "#1e293b", borderBottom: "1px solid #334155" }} className="sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -166,7 +163,6 @@ export default function TeamPage() {
       </nav>
 
       <div className="max-w-5xl mx-auto px-4 py-8">
-        {/* STATS */}
         <div className="grid grid-cols-4 gap-4 mb-8">
           {[
             { label: "球员人数", value: team.players.length },
@@ -181,14 +177,12 @@ export default function TeamPage() {
           ))}
         </div>
 
-        {/* SEARCH */}
         <div className="mb-6">
           <input className="input" style={{ maxWidth: 400 }}
             placeholder="🔍  搜索球员姓名、背号、守备位置..."
             value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
-        {/* PLAYERS */}
         {filtered.length === 0 ? (
           <div className="text-center py-16" style={{ color: "#64748b" }}>
             {team.players.length === 0 ? (
@@ -222,7 +216,7 @@ export default function TeamPage() {
                         #{player.number}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-white truncate">{player.name}</div>
+                        <div className="font-semibold text-white truncate">{player.name || `#${player.number}`}</div>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="badge text-white text-xs" style={{ background: POSITION_COLORS[player.position] ?? "#64748b" }}>{player.position}</span>
                           {player.bats && <span className="text-xs" style={{ color: "#64748b" }}>打:{player.bats}</span>}
@@ -247,7 +241,6 @@ export default function TeamPage() {
         )}
       </div>
 
-      {/* ADD PLAYER MODAL */}
       {showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)" }}
           onClick={(e) => { if (e.target === e.currentTarget) setShowAdd(false); }}>
@@ -293,7 +286,6 @@ export default function TeamPage() {
         </div>
       )}
 
-      {/* SMART IMPORT MODAL */}
       {showImport && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.85)" }}
           onClick={(e) => { if (e.target === e.currentTarget) setShowImport(false); }}>
@@ -302,7 +294,6 @@ export default function TeamPage() {
               <h2 className="text-lg font-bold text-white flex items-center gap-2">🤖 智能导入球员</h2>
               <button onClick={() => setShowImport(false)} className="text-gray-400 hover:text-white text-xl">×</button>
             </div>
-
             {importDone ? (
               <div className="text-center py-8">
                 <div className="text-5xl mb-3">✅</div>
@@ -310,7 +301,6 @@ export default function TeamPage() {
               </div>
             ) : parsedPlayers.length > 0 ? (
               <>
-                {/* Game metadata */}
                 <div className="grid grid-cols-2 gap-3 mb-4 p-3 rounded-lg" style={{ background: "#0f172a", border: "1px solid #334155" }}>
                   <div>
                     <label className="block text-xs mb-1" style={{ color: "#94a3b8" }}>比赛日期（选填）</label>
@@ -321,10 +311,7 @@ export default function TeamPage() {
                     <input className="input text-sm" placeholder="上海虎鲸" value={importOpponent} onChange={e => setImportOpponent(e.target.value)} />
                   </div>
                 </div>
-
-                <p className="text-sm mb-3" style={{ color: "#94a3b8" }}>
-                  从 PDF 中识别到以下球员，勾选要导入的（已存在的球员会更新打席数据）：
-                </p>
+                <p className="text-sm mb-3" style={{ color: "#94a3b8" }}>从 PDF 中识别到以下球员，勾选要导入的：</p>
                 <div className="space-y-2 mb-5 max-h-64 overflow-y-auto">
                   {parsedPlayers.map((p, i) => {
                     const existing = team.players.find(ep => ep.name === p.name);
@@ -334,13 +321,10 @@ export default function TeamPage() {
                         <input type="checkbox" checked={p.selected}
                           onChange={() => setParsedPlayers(prev => prev.map((x, j) => j === i ? {...x, selected: !x.selected} : x))}
                           className="w-4 h-4 accent-green-500" />
-                        <div className="flex-1">
-                          <span className="text-sm font-medium text-white">
-                            {p.battingOrder}棒 · #{p.number} {p.name}
-                          </span>
-                          {existing && <span className="ml-2 text-xs" style={{ color: "#64748b" }}>(已存在)</span>}
-
-                        </div>
+                        <span className="text-sm font-medium text-white">
+                          {p.battingOrder}棒 · #{p.number} {p.name}
+                        </span>
+                        {existing && <span className="text-xs ml-auto" style={{ color: "#64748b" }}>已存在</span>}
                       </label>
                     );
                   })}
@@ -356,7 +340,7 @@ export default function TeamPage() {
             ) : (
               <>
                 <p className="text-sm mb-4" style={{ color: "#94a3b8" }}>
-                  上传「投球位置首球好球记录表」PDF，AI 自动识别球员姓名、背号和每打席的首球好坏球数据
+                  上传「投球位置首球好球记录表」PDF，AI 自动识别球员信息
                 </p>
                 <div
                   className="rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-8 cursor-pointer mb-4"
@@ -365,11 +349,9 @@ export default function TeamPage() {
                   <input ref={fileRef} type="file" accept="application/pdf" hidden
                     onChange={(e) => { setImportFile(e.target.files?.[0] ?? null); setParseError(""); }} />
                   <div className="text-4xl mb-2">📋</div>
-                  {importFile ? (
-                    <p className="text-sm text-green-400 font-medium">{importFile.name}</p>
-                  ) : (
-                    <p className="text-sm" style={{ color: "#94a3b8" }}>点击选择 PDF 文件</p>
-                  )}
+                  {importFile
+                    ? <p className="text-sm text-green-400 font-medium">{importFile.name}</p>
+                    : <p className="text-sm" style={{ color: "#94a3b8" }}>点击选择 PDF 文件</p>}
                 </div>
                 {parseError && <p className="text-red-400 text-sm mb-3">{parseError}</p>}
                 <button onClick={handleParse} disabled={!importFile || parsing}

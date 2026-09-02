@@ -40,9 +40,9 @@ export default function HomePage() {
   const [importDone, setImportDone] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  function reload() {
+  async function reload() {
     initDefaultTeams();
-    const t = getTeams();
+    const t = await getTeams();
     setTeams(t);
     return t;
   }
@@ -54,20 +54,20 @@ export default function HomePage() {
     (t.shortName ?? "").toLowerCase().includes(search.toLowerCase())
   );
 
-  function handleCreate(e: React.FormEvent) {
+  async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!newName.trim()) return;
-    createTeam(newName.trim(), newShort.trim() || undefined, newColor);
-    reload();
+    await createTeam(newName.trim(), newShort.trim() || undefined, newColor);
+    await reload();
     setNewName(""); setNewShort(""); setNewColor(TEAM_COLORS[0]);
     setShowCreate(false);
   }
 
-  function handleDelete(e: React.MouseEvent, id: string) {
+  async function handleDelete(e: React.MouseEvent, id: string) {
     e.preventDefault(); e.stopPropagation();
     if (!confirm("删除球队？")) return;
-    deleteTeam(id);
-    reload();
+    await deleteTeam(id);
+    await reload();
   }
 
   function openImport() {
@@ -109,7 +109,8 @@ export default function HomePage() {
   async function handleImport() {
     if (!importTeamId) return;
     setImporting(true);
-    const team = getTeams().find(t => t.id === importTeamId);
+    const latestTeams = await getTeams();
+    const team = latestTeams.find(t => t.id === importTeamId);
     const currentPlayers = team?.players ?? [];
     for (const p of parsedPlayers.filter(p => p.selected)) {
       const existing = currentPlayers.find(ep => ep.name === p.name);
@@ -117,11 +118,11 @@ export default function HomePage() {
       if (existing) {
         playerId = existing.id;
       } else {
-        const newP = addPlayer(importTeamId, { name: p.name, number: p.number, position: "P" });
+        const newP = await addPlayer(importTeamId, { name: p.name, number: p.number, position: "P" });
         playerId = newP.id;
       }
       if (p.atBats && p.atBats.length > 0 && (importDate || importOpponent)) {
-        addGameStat(importTeamId, playerId, {
+        await addGameStat(importTeamId, playerId, {
           gameDate: importDate,
           opponent: importOpponent,
           battingOrder: p.battingOrder,
@@ -129,7 +130,7 @@ export default function HomePage() {
         });
       }
     }
-    reload();
+    await reload();
     setImportDone(true);
     setImporting(false);
     setTimeout(() => setShowImport(false), 1500);
@@ -178,7 +179,7 @@ export default function HomePage() {
               <Link key={team.id} href={`/teams/${team.id}`} className="block">
                 <div className="card p-5 hover:border-green-500 transition-all cursor-pointer group relative" style={{ borderColor: "#334155" }}>
                   <button onClick={(e) => handleDelete(e, team.id)}
-                    className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 text-lg leading-none"
+                    className="absolute top-3 right-3 text-red-400 hover:text-red-300 text-lg leading-none"
                     title="删除球队">×</button>
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white"
@@ -256,7 +257,6 @@ export default function HomePage() {
               </div>
             ) : parsedPlayers.length > 0 ? (
               <>
-                {/* Game metadata */}
                 <div className="grid grid-cols-2 gap-3 mb-4 p-3 rounded-lg" style={{ background: "#0f172a", border: "1px solid #334155" }}>
                   <div>
                     <label className="block text-xs mb-1" style={{ color: "#94a3b8" }}>比赛日期（选填）</label>
@@ -267,10 +267,7 @@ export default function HomePage() {
                     <input className="input text-sm" placeholder="上海虎鲸" value={importOpponent} onChange={e => setImportOpponent(e.target.value)} />
                   </div>
                 </div>
-
-                <p className="text-sm mb-3" style={{ color: "#94a3b8" }}>
-                  从 PDF 中识别到以下球员，勾选要导入的：
-                </p>
+                <p className="text-sm mb-3" style={{ color: "#94a3b8" }}>从 PDF 中识别到以下球员，勾选要导入的：</p>
                 <div className="space-y-2 mb-5 max-h-64 overflow-y-auto">
                   {parsedPlayers.map((p, i) => {
                     const team = teams.find(t => t.id === importTeamId);
@@ -299,7 +296,6 @@ export default function HomePage() {
               </>
             ) : (
               <>
-                {/* Step 1: Select team */}
                 <div className="mb-4">
                   <label className="block text-sm mb-2" style={{ color: "#94a3b8" }}>选择球队 *</label>
                   <select className="input select" value={importTeamId} onChange={e => setImportTeamId(e.target.value)}>
@@ -307,8 +303,6 @@ export default function HomePage() {
                     {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                   </select>
                 </div>
-
-                {/* Step 2: Upload PDF */}
                 <div
                   className="rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-8 cursor-pointer mb-4"
                   style={{ borderColor: importFile ? "#22c55e" : "#334155", background: "#0f172a", opacity: importTeamId ? 1 : 0.4, pointerEvents: importTeamId ? "auto" : "none" }}
@@ -320,9 +314,7 @@ export default function HomePage() {
                     ? <p className="text-sm text-green-400 font-medium">{importFile.name}</p>
                     : <p className="text-sm" style={{ color: "#94a3b8" }}>点击选择「投球位置首球好球记录表」PDF</p>}
                 </div>
-
                 {parseError && <p className="text-red-400 text-sm mb-3">{parseError}</p>}
-
                 <button onClick={handleParse} disabled={!importFile || !importTeamId || parsing}
                   className="btn btn-primary w-full justify-center"
                   style={{ opacity: (!importFile || !importTeamId) ? 0.5 : 1 }}>

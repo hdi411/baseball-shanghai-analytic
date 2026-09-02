@@ -25,8 +25,8 @@ export default function PlayerPage() {
   const [viewingChart, setViewingChart] = useState<ChartFile | null>(null);
   const [viewUrl, setViewUrl] = useState<string | null>(null);
 
-  const reload = useCallback(() => {
-    const t = getTeam(params.id);
+  const reload = useCallback(async () => {
+    const t = await getTeam(params.id);
     setTeam(t);
     const p = t?.players.find((p) => p.id === params.playerId) ?? null;
     setPlayer(p);
@@ -51,18 +51,18 @@ export default function PlayerPage() {
     setViewUrl(url);
   }
 
-  function handleDelete(chartId: string) {
+  async function handleDelete(chartId: string) {
     if (!confirm("删除这张图表？")) return;
-    deleteChart(params.id, params.playerId, chartId);
+    await deleteChart(params.id, params.playerId, chartId);
     setViewingChart(null);
     setViewUrl(null);
-    reload();
+    await reload();
   }
 
-  function handleDeleteStat(statId: string) {
+  async function handleDeleteStat(statId: string) {
     if (!confirm("删除这条打席记录？")) return;
-    deleteGameStat(params.id, params.playerId, statId);
-    reload();
+    await deleteGameStat(params.id, params.playerId, statId);
+    await reload();
   }
 
   if (!team || !player) return null;
@@ -76,7 +76,6 @@ export default function PlayerPage() {
 
   return (
     <div className="min-h-screen">
-      {/* NAV */}
       <nav style={{ background: "#1e293b", borderBottom: "1px solid #334155" }} className="sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -88,7 +87,7 @@ export default function PlayerPage() {
               </div>
               <span className="text-sm" style={{ color: "#64748b" }}>{team.name}</span>
               <span style={{ color: "#334155" }}>/</span>
-              <span className="font-semibold text-white">{player.name}</span>
+              <span className="font-semibold text-white">{player.name || `#${player.number}`}</span>
             </div>
           </div>
           <Link href={`/upload?teamId=${team.id}&playerId=${player.id}`} className="btn btn-primary text-sm">
@@ -98,14 +97,13 @@ export default function PlayerPage() {
       </nav>
 
       <div className="max-w-5xl mx-auto px-4 py-8">
-        {/* PLAYER HEADER */}
         <div className="card p-6 mb-6 flex flex-wrap gap-6 items-center">
           <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold text-white"
             style={{ background: team.color ?? "#22c55e" }}>
             #{player.number}
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">{player.name}</h1>
+            <h1 className="text-2xl font-bold text-white">{player.name || `#${player.number}`}</h1>
             <div className="flex items-center gap-3 mt-1">
               <span className="badge text-white" style={{ background: "#334155" }}>{player.position}</span>
               {player.bats && <span className="text-sm" style={{ color: "#64748b" }}>打击：{player.bats === "R" ? "右打" : player.bats === "L" ? "左打" : "两打"}</span>}
@@ -134,7 +132,6 @@ export default function PlayerPage() {
           </div>
         </div>
 
-        {/* TABS */}
         <div className="flex gap-2 mb-6 p-1 rounded-lg" style={{ background: "#1e293b", border: "1px solid #334155", width: "fit-content" }}>
           {(["batting","pitching","scouting","stats"] as Tab[]).map((t) => (
             <button key={t} className={`tab ${tab === t ? "active" : ""}`} onClick={() => setTab(t)}>
@@ -144,14 +141,11 @@ export default function PlayerPage() {
                   ({player.charts.filter(c => (CHART_CATEGORY[c.type] as ChartCategory) === t).length})
                 </span>
               )}
-              {t === "stats" && (
-                <span className="ml-1 text-xs opacity-70">({gameStats.length})</span>
-              )}
+              {t === "stats" && <span className="ml-1 text-xs opacity-70">({gameStats.length})</span>}
             </button>
           ))}
         </div>
 
-        {/* CHART TABS */}
         {tab !== "stats" && (
           chartsForTab.length === 0 ? (
             <div className="text-center py-16" style={{ color: "#64748b" }}>
@@ -191,7 +185,6 @@ export default function PlayerPage() {
           )
         )}
 
-        {/* STATS TAB */}
         {tab === "stats" && (
           gameStats.length === 0 ? (
             <div className="text-center py-16" style={{ color: "#64748b" }}>
@@ -201,7 +194,6 @@ export default function PlayerPage() {
             </div>
           ) : (
             <>
-              {/* Summary card */}
               <div className="card p-5 mb-6">
                 <h3 className="font-semibold text-white mb-4">首球好球统计</h3>
                 <div className="grid grid-cols-3 gap-4 mb-4">
@@ -218,7 +210,6 @@ export default function PlayerPage() {
                     <div className="text-xs mt-1" style={{ color: "#64748b" }}>好球率</div>
                   </div>
                 </div>
-                {/* Progress bar */}
                 <div className="h-3 rounded-full overflow-hidden" style={{ background: "#1e293b" }}>
                   <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${fpsPct ?? 0}%` }} />
                 </div>
@@ -227,8 +218,6 @@ export default function PlayerPage() {
                   <span>好球 {fpsCount} 次</span>
                 </div>
               </div>
-
-              {/* Per-game breakdown */}
               <div className="space-y-4">
                 {[...gameStats].reverse().map((stat) => {
                   const gameFps = stat.atBats.filter(a => a.firstPitchStrike).length;
@@ -239,9 +228,7 @@ export default function PlayerPage() {
                         <div>
                           <div className="font-medium text-white">
                             {stat.opponent ? `vs ${stat.opponent}` : "比赛记录"}
-                            <span className="ml-2 text-xs" style={{ color: "#64748b" }}>
-                              {stat.battingOrder}棒
-                            </span>
+                            <span className="ml-2 text-xs" style={{ color: "#64748b" }}>{stat.battingOrder}棒</span>
                           </div>
                           <div className="text-xs mt-0.5" style={{ color: "#64748b" }}>
                             {stat.gameDate || new Date(stat.uploadedAt).toLocaleDateString("zh-CN")}
@@ -272,7 +259,6 @@ export default function PlayerPage() {
         )}
       </div>
 
-      {/* PDF VIEWER MODAL */}
       {viewingChart && (
         <div className="fixed inset-0 z-50 flex flex-col" style={{ background: "rgba(0,0,0,0.95)" }}>
           <div className="flex items-center justify-between px-4 py-3" style={{ background: "#1e293b", borderBottom: "1px solid #334155" }}>

@@ -31,48 +31,34 @@ export async function POST(req: NextRequest) {
               type: "text",
               text: `这是一张棒球「投球位置首球好球记录表」。
 
-重要提示：
-- 表格顶部有两支队伍名称，其中**名字下方有波浪线（波浪底线）的队伍是进攻方（打击方）**
-- 左侧按打击顺序（1棒到9棒）列出攻方球员的姓名和背号
-- 每个球员对应多次打席（At-Bat），每次打席记录：
-  - 打击结果（如 1-3、6H、7HR、K、BB 等）
-  - 首球是否为好球（Y = 好球，N = 坏球）
+重要规则：
+- 表格顶部有两支队伍名称，其中**名字下方有波浪线（波浪底线）的队伍是进攻方（打击方）**，请仔细识别哪个队名有波浪底线
+- 左侧按打击顺序（1棒到9棒）列出的是进攻方球员的姓名和背号
+- 每个球员对应多次打席，每次打席记录打击结果和首球是否为好球（Y/N）
 
-请从打击顺序栏提取每位球员信息，以及他们每次打席的数据。
-
-请严格以 JSON 格式返回，只返回 JSON 数组，不要任何其他文字：
-[
-  {
-    "battingOrder": 1,
-    "name": "张友极",
-    "number": "23",
-    "atBats": [
-      {"result": "K", "firstPitchStrike": true},
-      {"result": "1-3", "firstPitchStrike": false},
-      {"result": "6H", "firstPitchStrike": true}
-    ]
-  },
-  {
-    "battingOrder": 2,
-    "name": "金锭裕",
-    "number": "53",
-    "atBats": [
-      {"result": "BB", "firstPitchStrike": false},
-      {"result": "4-3", "firstPitchStrike": true}
-    ]
-  }
-]
+请以 JSON 格式返回，只返回 JSON，不要任何其他文字：
+{
+  "battingTeam": "上海虎鲸棒球俱乐部",
+  "pitchingTeam": "北京正大龙棒球俱乐部",
+  "players": [
+    {
+      "battingOrder": 1,
+      "name": "张友极",
+      "number": "23",
+      "atBats": [
+        {"result": "K", "firstPitchStrike": true},
+        {"result": "1-3", "firstPitchStrike": false}
+      ]
+    }
+  ]
+}
 
 说明：
-- battingOrder: 打击顺序 1-9
-- name: 球员中文姓名
-- number: 背号（数字字符串）
-- atBats: 打席数组，每个打席包含：
-  - result: 打击结果文字（从表格中读取）
-  - firstPitchStrike: 首球好球为 true，首球坏球为 false
-- 如果某个打席的首球好坏球无法判断，默认为 false
-- 如果某个位置没有球员信息就跳过
-- 如果打席为空就返回空数组 []`,
+- battingTeam: 有波浪底线的队伍名称（进攻方）
+- pitchingTeam: 另一支队伍名称（防守方）
+- players: 进攻方打击顺序球员列表，每人包含 battingOrder（1-9）、name、number、atBats
+- atBats 中 firstPitchStrike: true = 首球好球，false = 首球坏球
+- 如果某个打击顺序没有球员就跳过，atBats 为空则返回 []`,
             },
           ],
         },
@@ -80,10 +66,15 @@ export async function POST(req: NextRequest) {
     });
 
     const text = (response.content[0] as { type: string; text: string }).text;
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) return NextResponse.json({ players: [] });
-    const players = JSON.parse(jsonMatch[0]);
-    return NextResponse.json({ players });
+    // Try to parse as object with battingTeam
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return NextResponse.json({ players: [], battingTeam: null, pitchingTeam: null });
+    const parsed = JSON.parse(jsonMatch[0]);
+    return NextResponse.json({
+      players: parsed.players ?? [],
+      battingTeam: parsed.battingTeam ?? null,
+      pitchingTeam: parsed.pitchingTeam ?? null,
+    });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: "Parse failed" }, { status: 500 });
