@@ -50,39 +50,40 @@ function UploadPage() {
   const [newPlayerNum, setNewPlayerNum] = useState("");
   const [newPlayerPos, setNewPlayerPos] = useState<Position>("P");
 
-  function reload() {
-    const t = getTeams();
+  async function reload() {
+    const t = await getTeams();
     setTeams(t);
     return t;
   }
 
   useEffect(() => {
-    const t = reload();
-    const preTeam = searchParams.get("teamId");
-    const prePlayer = searchParams.get("playerId");
-    if (preTeam && t.find(x => x.id === preTeam)) setSelectedTeamId(preTeam);
-    if (prePlayer) setSelectedPlayerId(prePlayer);
+    reload().then(t => {
+      const preTeam = searchParams.get("teamId");
+      const prePlayer = searchParams.get("playerId");
+      if (preTeam && t.find(x => x.id === preTeam)) setSelectedTeamId(preTeam);
+      if (prePlayer) setSelectedPlayerId(prePlayer);
+    });
   }, []);
 
   const currentTeam = teams.find((t) => t.id === selectedTeamId) ?? null;
   const currentPlayer = currentTeam?.players.find((p) => p.id === selectedPlayerId) ?? null;
 
-  function handleCreateTeam(e: React.FormEvent) {
+  async function handleCreateTeam(e: React.FormEvent) {
     e.preventDefault();
     if (!newTeamName.trim()) return;
-    const team = createTeam(newTeamName.trim(), undefined, newTeamColor);
-    const t = reload();
+    const team = await createTeam(newTeamName.trim(), undefined, newTeamColor);
+    await reload();
     setSelectedTeamId(team.id);
     setSelectedPlayerId("");
     setShowCreateTeam(false);
     setNewTeamName("");
   }
 
-  function handleCreatePlayer(e: React.FormEvent) {
+  async function handleCreatePlayer(e: React.FormEvent) {
     e.preventDefault();
     if (!newPlayerName.trim() || !selectedTeamId) return;
-    const player = addPlayer(selectedTeamId, { name: newPlayerName.trim(), number: newPlayerNum.trim(), position: newPlayerPos });
-    reload();
+    const player = await addPlayer(selectedTeamId, { name: newPlayerName.trim(), number: newPlayerNum.trim(), position: newPlayerPos });
+    await reload();
     setSelectedPlayerId(player.id);
     setShowCreatePlayer(false);
     setNewPlayerName(""); setNewPlayerNum(""); setNewPlayerPos("P");
@@ -121,7 +122,7 @@ function UploadPage() {
     try {
       for (const file of files) {
         const dataUrl = await fileToDataUrl(file);
-        const chart = addChart(selectedTeamId, selectedPlayerId, {
+        const chart = await addChart(selectedTeamId, selectedPlayerId, {
           type: chartType,
           fileName: file.name,
           gameDate: gameDate || undefined,
