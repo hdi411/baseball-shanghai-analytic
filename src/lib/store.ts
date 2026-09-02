@@ -26,15 +26,68 @@ function saveTeams(teams: Team[]) {
   localStorage.setItem(KEY, JSON.stringify(teams));
 }
 
+const DEFAULT_PLAYERS: Record<string, { name: string; number: string }[]> = {
+  "虎鲸": [
+    { name: "激祝柱", number: "23" },
+    { name: "金银柱", number: "53" },
+    { name: "洼基根", number: "37" },
+    { name: "王诚",   number: "31" },
+    { name: "巴彪嶋", number: "89" },
+    { name: "树信亨", number: "3"  },
+    { name: "泊明",   number: "22" },
+    { name: "刘祥诚", number: "6"  },
+    { name: "葛青",   number: "7"  },
+  ],
+  "海侠": [
+    { name: "澜郑社", number: "5"  },
+    { name: "林迈城", number: "14" },
+    { name: "香港",   number: "6"  },
+    { name: "彼傲艇", number: "0"  },
+    { name: "桑軟敬", number: "29" },
+    { name: "傳茶修", number: "55" },
+    { name: "江旺津", number: "93" },
+    { name: "伊帅",   number: "68" },
+    { name: "居修殷", number: "30" },
+  ],
+};
+
+function makeDefaultPlayers(shortName?: string): Player[] {
+  const list = (shortName && DEFAULT_PLAYERS[shortName]) ?? [];
+  return list.map((p) => ({
+    ...p,
+    id: crypto.randomUUID(),
+    position: "OF" as Position,
+    charts: [],
+    gameStats: [],
+  }));
+}
+
 export function initDefaultTeams(): void {
-  if (getTeams().length > 0) return;
+  if (getTeams().length > 0) {
+    // Migration: seed players into existing empty teams
+    seedDefaultPlayers();
+    return;
+  }
   const teams: Team[] = DEFAULT_TEAMS.map((t) => ({
     ...t,
     id: crypto.randomUUID(),
-    players: [],
+    players: makeDefaultPlayers(t.shortName),
     createdAt: new Date().toISOString(),
   }));
   saveTeams(teams);
+}
+
+export function seedDefaultPlayers(): void {
+  const teams = getTeams();
+  let changed = false;
+  for (const team of teams) {
+    const key = team.shortName;
+    if (key && DEFAULT_PLAYERS[key] && team.players.length === 0) {
+      team.players = makeDefaultPlayers(key);
+      changed = true;
+    }
+  }
+  if (changed) saveTeams(teams);
 }
 
 export function getTeam(id: string): Team | null {
