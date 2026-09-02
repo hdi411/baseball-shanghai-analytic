@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { getTeam, deleteChart, deleteGameStat } from "@/lib/store";
 import { getFile } from "@/lib/db";
-import type { Team, Player, ChartFile, ChartCategory, GameStat, AtBat } from "@/lib/types";
+import type { Team, Player, ChartFile, ChartCategory, GameStat, AtBat, PitchLocationStat } from "@/lib/types";
 import { CHART_TYPE_LABELS, CHART_TYPE_EN, CHART_CATEGORY } from "@/lib/types";
 
 type Tab = "batting" | "pitching" | "scouting" | "stats";
@@ -16,6 +16,114 @@ const TAB_LABELS: Record<Tab, string> = {
   stats: "打席数据",
 };
 
+
+// ─── Pitch Location Heat Map from DB stats ───────────────────────────────────
+function PitchZoneHeatMap({ stats }: { stats: PitchLocationStat[] }) {
+  const ROWS = 5;
+  const COLS = 5;
+  const rowLabels = ["顶", "高", "中", "低", "底"];
+  const colLabels = ["外", "", "", "", "内"];
+  const CELL = 44;
+
+  if (stats.length === 0) return null;
+
+  // Aggregate all games
+  const totalCounts = Array(25).fill(0);
+  stats.forEach((s) => {
+    s.zoneCounts.forEach((v, i) => { totalCounts[i] += (v || 0); });
+  });
+  const total = totalCounts.reduce((a, b) => a + b, 0);
+  const maxCount = Math.max(...totalCounts);
+  if (total === 0) return null;
+
+  return (
+    <div className="card p-5 mb-6">
+      <div className="flex items-center justify-between mb-1">
+        <h3 className="font-semibold text-white">投球位置分布</h3>
+        <span className="text-xs" style={{ color: "#64748b" }}>{stats.length} 场 · 共 {total} 球</span>
+      </div>
+      <p className="text-xs mb-4" style={{ color: "#475569" }}>投手视角 · 右侧=内角</p>
+      <div className="flex gap-3 items-start justify-center">
+        {/* Row labels */}
+        <div className="flex flex-col" style={{ gap: 2, paddingTop: 20 }}>
+          {rowLabels.map((l) => (
+            <div key={l} className="flex items-center justify-center text-xs"
+              style={{ height: CELL, color: "#64748b", width: 16 }}>{l}</div>
+          ))}
+        </div>
+        {/* Grid */}
+        <div>
+          <div className="flex mb-1" style={{ gap: 2 }}>
+            {colLabels.map((l, i) => (
+              <div key={i} className="text-center text-xs" style={{ width: CELL, color: "#64748b" }}>{l}</div>
+            ))}
+          </div>
+          <div className="rounded-lg overflow-hidden" style={{ border: "2px solid #334155" }}>
+            {Array.from({ length: ROWS }, (_, row) => (
+              <div key={row} className="flex" style={{ borderBottom: row < ROWS - 1 ? "1px solid #334155" : "none" }}>
+                {Array.from({ length: COLS }, (_, col) => {
+                  const zone = row * COLS + col;
+                  const count = totalCounts[zone];
+                  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                  const intensity = maxCount > 0 ? count / maxCount : 0;
+                  const alpha = count > 0 ? 0.1 + intensity * 0.7 : 0;
+                  const bg = count > 0 ? `rgba(34,197,94,${alpha.toFixed(2)})` : "#0f172a";
+                  const textColor = intensity > 0.55 ? "#fff" : "#94a3b8";
+                  return (
+                    <div key={col} className="flex flex-col items-center justify-center"
+                      style={{
+                        width: CELL, height: CELL, background: bg,
+                        borderRight: col < COLS - 1 ? "1px solid #334155" : "none",
+                      }}>
+                      {count > 0 ? (
+                        <>
+                          <span className="font-bold" style={{ fontSize: 11, color: textColor, lineHeight: 1.2 }}>{pct}%</span>
+                          <span style={{ fontSize: 9, color: "#94a3b8", lineHeight: 1 }}>{count}球</span>
+                        </>
+                      ) : (
+                        <span style={{ fontSize: 9, color: "#334155" }}>—</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between mt-1 text-xs" style={{ color: "#475569" }}>
+            <span>← 外角</span><span>内角 →</span>
+          </div>
+        </div>
+        {/* Legend */}
+        <div className="flex flex-col gap-2 text-xs" style={{ color: "#64748b", paddingTop: 20 }}>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-sm" style={{ background: "rgba(34,197,94,0.8)" }} />高频
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-sm" style={{ background: "rgba(34,197,94,0.3)" }} />低频
+          </div>
+        </div>
+      </div>
+      {/* Per-game breakdown */}
+      {stats.length > 1 && (
+        <div className="mt-4 pt-4" style={{ borderTop: "1px solid #1e293b" }}>
+          <p className="text-xs mb-2" style={{ color: "#64748b" }}>各场记录</p>
+          <div className="flex flex-wrap gap-2">
+            {[...stats].reverse().map((s) => {
+              const gameTotal = s.zoneCounts.reduce((a, b) => a + b, 0);
+              return (
+                <div key={s.id} className="text-xs px-3 py-1.5 rounded-lg" style={{ background: "#0f172a", border: "1px solid #334155", color: "#94a3b8" }}>
+                  {s.opponent ? `vs ${s.opponent}` : "—"}
+                  {s.gameDate && ` · ${s.gameDate}`}
+                  <span className="ml-1 text-white">{gameTotal}球</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ─── Pitch Location Heat Map (5×5) ───────────────────────────────────────────
 function PitchHeatMap({ atBats }: { atBats: AtBat[] }) {
@@ -239,6 +347,10 @@ export default function PlayerPage() {
             </button>
           ))}
         </div>
+
+        {tab === "pitching" && player.pitchLocationStats.length > 0 && (
+          <PitchZoneHeatMap stats={player.pitchLocationStats} />
+        )}
 
         {tab !== "stats" && (
           chartsForTab.length === 0 ? (

@@ -1,6 +1,6 @@
 // Supabase-backed store — replaces localStorage version
 import { createClient } from "@supabase/supabase-js";
-import type { Team, Player, ChartFile, GameStat, Position } from "./types";
+import type { Team, Player, ChartFile, GameStat, Position, PitchLocationStat } from "./types";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -9,7 +9,7 @@ const db = createClient(supabaseUrl, supabaseKey);
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function rowToPlayer(row: any, stats: GameStat[] = [], charts: ChartFile[] = []): Player {
+function rowToPlayer(row: any, stats: GameStat[] = [], charts: ChartFile[] = [], pitchLocationStats: PitchLocationStat[] = []): Player {
   return {
     id:       row.id,
     name:     row.name ?? "",
@@ -19,6 +19,7 @@ function rowToPlayer(row: any, stats: GameStat[] = [], charts: ChartFile[] = [])
     bats:     row.bats,
     charts,
     gameStats: stats,
+    pitchLocationStats,
   };
 }
 
@@ -58,6 +59,19 @@ function rowToChartFile(row: any): ChartFile {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function rowToPitchLocationStat(row: any): PitchLocationStat {
+  const raw = row.zone_counts;
+  const zoneCounts: number[] = Array.isArray(raw) ? raw.map(Number) : Array(25).fill(0);
+  return {
+    id:         row.id,
+    gameDate:   row.game_date,
+    opponent:   row.opponent,
+    zoneCounts,
+    createdAt:  row.created_at,
+  };
+}
+
 // ─── Teams ───────────────────────────────────────────────────────────────────
 
 export async function getTeams(): Promise<Team[]> {
@@ -65,10 +79,11 @@ export async function getTeams(): Promise<Team[]> {
   if (!teamRows?.length) return [];
 
   const teamIds = teamRows.map((t) => t.id);
-  const [{ data: playerRows }, { data: statRows }, { data: chartRows }] = await Promise.all([
+  const [{ data: playerRows }, { data: statRows }, { data: chartRows }, { data: plsRows }] = await Promise.all([
     db.from("players").select("*").in("team_id", teamIds).order("created_at"),
     db.from("game_stats").select("*").order("uploaded_at"),
     db.from("chart_files").select("*").order("uploaded_at"),
+    db.from("pitch_location_stats").select("*").order("created_at"),
   ]);
 
   return teamRows.map((t) => {
@@ -77,7 +92,8 @@ export async function getTeams(): Promise<Team[]> {
       .map((p) => {
         const stats  = (statRows ?? []).filter((s) => s.player_id === p.id).map(rowToGameStat);
         const charts = (chartRows ?? []).filter((c) => c.player_id === p.id).map(rowToChartFile);
-        return rowToPlayer(p, stats, charts);
+        const pls    = (plsRows ?? []).filter((r) => r.player_id === p.id).map(rowToPitchLocationStat);
+        return rowToPlayer(p, stats, charts, pls);
       });
     return rowToTeam(t, players);
   });
@@ -90,17 +106,19 @@ export async function getTeam(id: string): Promise<Team | null> {
   const { data: playerRows } = await db.from("players").select("*").eq("team_id", id).order("created_at");
   const playerIds = (playerRows ?? []).map((p) => p.id);
 
-  const [{ data: statRows }, { data: chartRows }] = playerIds.length
+  const [{ data: statRows }, { data: chartRows }, { data: plsRows }] = playerIds.length
     ? await Promise.all([
         db.from("game_stats").select("*").in("player_id", playerIds).order("uploaded_at"),
         db.from("chart_files").select("*").in("player_id", playerIds).order("uploaded_at"),
+        db.from("pitch_location_stats").select("*").in("player_id", playerIds).order("created_at"),
       ])
-    : [{ data: [] }, { data: [] }];
+    : [{ data: [] }, { data: [] }, { data: [] }];
 
   const players = (playerRows ?? []).map((p) => {
     const stats  = (statRows  ?? []).filter((s) => s.player_id === p.id).map(rowToGameStat);
     const charts = (chartRows ?? []).filter((c) => c.player_id === p.id).map(rowToChartFile);
-    return rowToPlayer(p, stats, charts);
+    const pls    = (plsRows   ?? []).filter((r) => r.player_id === p.id).map(rowToPitchLocationStat);
+    return rowToPlayer(p, stats, charts, pls);
   });
 
   return rowToTeam(t, players);

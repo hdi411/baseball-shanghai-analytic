@@ -56,6 +56,15 @@ export interface ChartFile {
   uploadedAt: string;
 }
 
+
+export interface PitchLocationStat {
+  id: string;
+  gameDate?: string;
+  opponent?: string;
+  zoneCounts: number[]; // 25 elements, 0-24 (5×5 grid, pitcher view: left=外 right=内, top=高 bottom=低)
+  createdAt: string;
+}
+
 export interface Player {
   id: string;
   name: string;
@@ -65,6 +74,7 @@ export interface Player {
   bats?: "R" | "L" | "S";
   charts: ChartFile[];
   gameStats: GameStat[];
+  pitchLocationStats: PitchLocationStat[];
 }
 
 export interface Team {
