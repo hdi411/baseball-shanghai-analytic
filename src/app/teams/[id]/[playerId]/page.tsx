@@ -148,12 +148,10 @@ function PitchHeatMap({ gameStats }: { gameStats: GameStat[] }) {
 
 // ── Category label helper ────────────────────────────────────────────────────
 function categoryLabel(cat: ChartCategory): string {
-  const map: Record<ChartCategory, string> = {
-    hitting: "打击",
+  const map: Record<string, string> = {
+    batting: "打击",
     pitching: "投球",
-    fielding: "守备",
-    baserunning: "跑垒",
-    other: "其他",
+    scouting: "数据分析",
   };
   return map[cat] ?? cat;
 }
