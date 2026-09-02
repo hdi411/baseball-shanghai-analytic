@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getTeams, createTeam, deleteTeam } from "@/lib/store";
+import { getTeams, createTeam, deleteTeam, initDefaultTeams } from "@/lib/store";
 import type { Team } from "@/lib/types";
 
 const TEAM_COLORS = [
@@ -19,7 +19,7 @@ export default function HomePage() {
   const [newColor, setNewColor] = useState(TEAM_COLORS[0]);
   const router = useRouter();
 
-  useEffect(() => { setTeams(getTeams()); }, []);
+  useEffect(() => { initDefaultTeams(); setTeams(getTeams()); }, []);
 
   const filtered = teams.filter((t) =>
     t.name.toLowerCase().includes(search.toLowerCase()) ||

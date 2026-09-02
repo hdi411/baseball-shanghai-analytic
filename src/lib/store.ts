@@ -3,6 +3,15 @@ import type { Team, Player, ChartFile, Position } from "./types";
 
 const KEY = "baseball_teams_v1";
 
+const DEFAULT_TEAMS: Omit<Team, "id" | "players" | "createdAt">[] = [
+  { name: "北京正大龙棒球俱乐部", shortName: "正大龙", color: "#ef4444" },
+  { name: "上海虎鲸棒球俱乐部",   shortName: "虎鲸",  color: "#3b82f6" },
+  { name: "深圳蓝袜棒球俱乐部",   shortName: "蓝袜",  color: "#06b6d4" },
+  { name: "厦门海豚棒球俱乐部",   shortName: "海豚",  color: "#a855f7" },
+  { name: "福州海侠（海峡）棒球俱乐部", shortName: "海侠", color: "#22c55e" },
+  { name: "长沙旺旺棒球俱乐部",   shortName: "旺旺",  color: "#f59e0b" },
+];
+
 export function getTeams(): Team[] {
   if (typeof window === "undefined") return [];
   try {
@@ -15,6 +24,17 @@ export function getTeams(): Team[] {
 
 function saveTeams(teams: Team[]) {
   localStorage.setItem(KEY, JSON.stringify(teams));
+}
+
+export function initDefaultTeams(): void {
+  if (getTeams().length > 0) return;
+  const teams: Team[] = DEFAULT_TEAMS.map((t) => ({
+    ...t,
+    id: crypto.randomUUID(),
+    players: [],
+    createdAt: new Date().toISOString(),
+  }));
+  saveTeams(teams);
 }
 
 export function getTeam(id: string): Team | null {
