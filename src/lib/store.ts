@@ -50,12 +50,11 @@ function rowToGameStat(row: any): GameStat {
 function rowToChartFile(row: any): ChartFile {
   return {
     id:         row.id,
+    type:       row.type ?? "pitcher-location",
     fileName:   row.file_name,
-    fileSize:   row.file_size,
     gameDate:   row.game_date,
+    opponent:   row.opponent,
     uploadedAt: row.uploaded_at,
-    dbKey:      row.id,
-    mimeType:   "application/pdf",
   };
 }
 
@@ -170,7 +169,7 @@ export async function addChart(
 ): Promise<ChartFile> {
   const { data: row, error } = await db
     .from("chart_files")
-    .insert({ team_id: teamId, player_id: playerId, file_name: chart.fileName, file_size: chart.fileSize, game_date: chart.gameDate })
+    .insert({ team_id: teamId, player_id: playerId, type: chart.type, file_name: chart.fileName, game_date: chart.gameDate, opponent: chart.opponent })
     .select().single();
   if (error || !row) throw new Error(error?.message ?? "addChart failed");
   return rowToChartFile(row);
