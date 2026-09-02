@@ -36,15 +36,19 @@ export async function POST(req: NextRequest) {
 - 左侧按打击顺序（1棒到9棒）列出的是进攻方球员的姓名和背号
 - 每个球员对应多次打席，每次打席记录：打击结果、首球在投球位置格内的位置、首球是否为好球（Y/N）
 
-投球位置区域（9宫格，格子编号如下）：
-┌───┬───┬───┐
-│ 0 │ 1 │ 2 │  ← 高区
-├───┼───┼───┤
-│ 3 │ 4 │ 5 │  ← 中区
-├───┼───┼───┤
-│ 6 │ 7 │ 8 │  ← 低区
-└───┴───┴───┘
- 内角 中间 外角
+投球位置区域（5×5格，格子编号如下，共25格）：
+┌────┬────┬────┬────┬────┐
+│  0 │  1 │  2 │  3 │  4 │  ← 最高区
+├────┼────┼────┼────┼────┤
+│  5 │  6 │  7 │  8 │  9 │  ← 高区
+├────┼────┼────┼────┼────┤
+│ 10 │ 11 │ 12 │ 13 │ 14 │  ← 中区
+├────┼────┼────┼────┼────┤
+│ 15 │ 16 │ 17 │ 18 │ 19 │  ← 低区
+├────┼────┼────┼────┼────┤
+│ 20 │ 21 │ 22 │ 23 │ 24 │  ← 最低区
+└────┴────┴────┴────┴────┘
+  内角←————————————→外角
 
 请以 JSON 格式返回，只返回 JSON，不要任何其他文字：
 {
@@ -56,8 +60,8 @@ export async function POST(req: NextRequest) {
       "name": "张友极",
       "number": "23",
       "atBats": [
-        {"result": "K", "firstPitchStrike": true, "pitchZone": 4},
-        {"result": "1-3", "firstPitchStrike": false, "pitchZone": 7}
+        {"result": "K", "firstPitchStrike": true, "pitchZone": 12},
+        {"result": "1-3", "firstPitchStrike": false, "pitchZone": 17}
       ]
     }
   ]
@@ -68,7 +72,7 @@ export async function POST(req: NextRequest) {
 - pitchingTeam: 另一支队伍名称（防守方）
 - players: 进攻方打击顺序球员列表，每人包含 battingOrder（1-9）、name、number、atBats
 - atBats 中 firstPitchStrike: true = 首球好球，false = 首球坏球
-- atBats 中 pitchZone: 首球落点对应的格子编号（0-8），若图表中标记了投球位置点则请识别；无法确认时省略该字段
+- atBats 中 pitchZone: 首球落点对应的格子编号（0-24），若图表中标记了投球位置点则请识别；无法确认时省略该字段
 - 如果某个打击顺序没有球员就跳过，atBats 为空则返回 []`,
             },
           ],

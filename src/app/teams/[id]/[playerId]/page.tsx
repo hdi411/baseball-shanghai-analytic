@@ -17,81 +17,92 @@ const TAB_LABELS: Record<Tab, string> = {
 };
 
 
-// ─── Pitch Location Heat Map ─────────────────────────────────────────────────
+// ─── Pitch Location Heat Map (5×5) ───────────────────────────────────────────
 function PitchHeatMap({ atBats }: { atBats: AtBat[] }) {
-  const zoned = atBats.filter((ab) => ab.pitchZone !== undefined && ab.pitchZone >= 0 && ab.pitchZone <= 8);
+  const ROWS = 5;
+  const COLS = 5;
+  const TOTAL_ZONES = ROWS * COLS; // 25
+  const rowLabels = ["顶", "高", "中", "低", "底"];
+  const colLabels = ["内", "", "", "", "外"];
+
+  const zoned = atBats.filter((ab) => ab.pitchZone !== undefined && ab.pitchZone >= 0 && ab.pitchZone < TOTAL_ZONES);
   const total = zoned.length;
   if (total === 0) return null;
 
-  const counts = Array(9).fill(0);
+  const counts = Array(TOTAL_ZONES).fill(0);
   zoned.forEach((ab) => { counts[ab.pitchZone!]++; });
   const maxCount = Math.max(...counts);
 
-  const rowLabels = ["高", "中", "低"];
-  const colLabels = ["内角", "中间", "外角"];
+  const CELL = 44; // px
 
   return (
     <div className="card p-5 mb-6">
       <h3 className="font-semibold text-white mb-1">投球位置分布</h3>
-      <p className="text-xs mb-4" style={{ color: "#64748b" }}>首球落点 · 共 {total} 球</p>
-      <div className="flex gap-4 items-start justify-center">
+      <p className="text-xs mb-4" style={{ color: "#64748b" }}>首球落点 · 共 {total} 球（5×5 格）</p>
+      <div className="flex gap-3 items-start justify-center">
         {/* Row labels */}
-        <div className="flex flex-col" style={{ gap: 4, paddingTop: 24 }}>
+        <div className="flex flex-col" style={{ gap: 2, paddingTop: 20 }}>
           {rowLabels.map((l) => (
             <div key={l} className="flex items-center justify-center text-xs"
-              style={{ height: 64, color: "#64748b", width: 20 }}>{l}</div>
+              style={{ height: CELL, color: "#64748b", width: 16 }}>{l}</div>
           ))}
         </div>
         {/* Grid */}
         <div>
-          {/* Column labels */}
-          <div className="flex mb-1" style={{ gap: 4 }}>
-            {colLabels.map((l) => (
-              <div key={l} className="text-center text-xs" style={{ width: 64, color: "#64748b" }}>{l}</div>
+          {/* Col labels */}
+          <div className="flex mb-1" style={{ gap: 2 }}>
+            {colLabels.map((l, i) => (
+              <div key={i} className="text-center text-xs" style={{ width: CELL, color: "#64748b" }}>{l}</div>
             ))}
           </div>
-          {/* Zone cells */}
+          {/* Cells */}
           <div className="rounded-lg overflow-hidden" style={{ border: "2px solid #334155" }}>
-            {[0, 1, 2].map((row) => (
-              <div key={row} className="flex" style={{ borderBottom: row < 2 ? "1px dashed #475569" : "none" }}>
-                {[0, 1, 2].map((col) => {
-                  const zone = row * 3 + col;
+            {Array.from({ length: ROWS }, (_, row) => (
+              <div key={row} className="flex" style={{ borderBottom: row < ROWS - 1 ? "1px solid #334155" : "none" }}>
+                {Array.from({ length: COLS }, (_, col) => {
+                  const zone = row * COLS + col;
                   const count = counts[zone];
                   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
                   const intensity = maxCount > 0 ? count / maxCount : 0;
-                  const alpha = count > 0 ? 0.12 + intensity * 0.68 : 0;
+                  const alpha = count > 0 ? 0.1 + intensity * 0.7 : 0;
                   const bg = count > 0 ? `rgba(34,197,94,${alpha.toFixed(2)})` : "#0f172a";
-                  const textColor = intensity > 0.6 ? "#fff" : intensity > 0.2 ? "#bbf7d0" : "#94a3b8";
+                  const textColor = intensity > 0.55 ? "#fff" : "#94a3b8";
                   return (
                     <div key={col} className="flex flex-col items-center justify-center"
                       style={{
-                        width: 64, height: 64,
+                        width: CELL, height: CELL,
                         background: bg,
-                        borderRight: col < 2 ? "1px dashed #475569" : "none",
+                        borderRight: col < COLS - 1 ? "1px solid #334155" : "none",
                         transition: "background 0.2s",
                       }}>
-                      <span className="font-bold text-base" style={{ color: textColor }}>{pct}%</span>
-                      <span className="text-xs" style={{ color: count > 0 ? "#94a3b8" : "#334155" }}>{count}球</span>
+                      {count > 0 ? (
+                        <>
+                          <span className="font-bold" style={{ fontSize: 11, color: textColor, lineHeight: 1.2 }}>{pct}%</span>
+                          <span style={{ fontSize: 9, color: "#94a3b8", lineHeight: 1 }}>{count}球</span>
+                        </>
+                      ) : (
+                        <span style={{ fontSize: 9, color: "#334155" }}>—</span>
+                      )}
                     </div>
                   );
                 })}
               </div>
             ))}
           </div>
+          <div className="flex justify-between mt-1 text-xs" style={{ color: "#475569" }}>
+            <span>← 内角</span><span>外角 →</span>
+          </div>
         </div>
         {/* Legend */}
-        <div className="flex flex-col gap-2 text-xs" style={{ color: "#64748b", paddingTop: 24 }}>
+        <div className="flex flex-col gap-2 text-xs" style={{ color: "#64748b", paddingTop: 20 }}>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-sm" style={{ background: "rgba(34,197,94,0.8)" }} />
-            <span>高频</span>
+            <div className="w-3 h-3 rounded-sm" style={{ background: "rgba(34,197,94,0.8)" }} />高频
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-sm" style={{ background: "rgba(34,197,94,0.3)" }} />
-            <span>低频</span>
+            <div className="w-3 h-3 rounded-sm" style={{ background: "rgba(34,197,94,0.3)" }} />低频
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-sm" style={{ background: "#0f172a", border: "1px solid #334155" }} />
-            <span>无</span>
+            <div className="w-3 h-3 rounded-sm" style={{ background: "#0f172a", border: "1px solid #334155" }} />无
           </div>
         </div>
       </div>
@@ -324,10 +335,10 @@ export default function PlayerPage() {
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {stat.atBats.map((ab, i) => {
-                          const zoneRow = ab.pitchZone !== undefined ? Math.floor(ab.pitchZone / 3) : null;
-                          const zoneCol = ab.pitchZone !== undefined ? ab.pitchZone % 3 : null;
+                          const zoneRow = ab.pitchZone !== undefined ? Math.floor(ab.pitchZone / 5) : null;
+                          const zoneCol = ab.pitchZone !== undefined ? ab.pitchZone % 5 : null;
                           const zoneLabel = ab.pitchZone !== undefined
-                            ? `${["高","中","低"][zoneRow!]}${["内","中","外"][zoneCol!]}`
+                            ? `${["顶","高","中","低","底"][zoneRow!]}${["内","","","","外"][zoneCol!]}`
                             : null;
                           return (
                             <div key={i} className="flex flex-col items-center gap-1">
