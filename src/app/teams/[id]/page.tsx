@@ -215,7 +215,7 @@ export default function TeamPage() {
                 <Link key={player.id} href={`/teams/${team.id}/${player.id}`} className="block">
                   <div className="card p-4 hover:border-green-500 transition-all cursor-pointer group relative">
                     <button onClick={(e) => handleDelete(e, player.id)}
-                      className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 text-lg leading-none">×</button>
+                      className="absolute top-3 right-3 text-red-400 hover:text-red-300 text-lg leading-none">×</button>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm"
                         style={{ background: POSITION_COLORS[player.position] ?? "#64748b" }}>
@@ -339,12 +339,7 @@ export default function TeamPage() {
                             {p.battingOrder}棒 · #{p.number} {p.name}
                           </span>
                           {existing && <span className="ml-2 text-xs" style={{ color: "#64748b" }}>(已存在)</span>}
-                          {p.atBats.length > 0 && (
-                            <div className="text-xs mt-0.5" style={{ color: "#64748b" }}>
-                              {p.atBats.length} 打席 · 首球好球 {p.atBats.filter(a => a.firstPitchStrike).length}/{p.atBats.length}
-                              {" "}({Math.round(p.atBats.filter(a => a.firstPitchStrike).length / p.atBats.length * 100)}%)
-                            </div>
-                          )}
+
                         </div>
                       </label>
                     );
