@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Team, Player, ChartFile, ChartCategory, GameStat, AtBat, PitchLocationStat } from "@/lib/types";
+import { Team, Player, ChartFile, ChartCategory, GameStat, AtBat, PitchLocationStat, CHART_CATEGORY, CHART_TYPE_LABELS } from "@/lib/types";
 import { getTeam } from "@/lib/store";
 
 // ── Pitch zone heat-map from Supabase pitch_location_stats ──────────────────
@@ -222,8 +222,9 @@ export default function PlayerPage() {
   // Charts grouped by category
   const chartsByCategory: Partial<Record<ChartCategory, ChartFile[]>> = {};
   for (const chart of player.charts) {
-    if (!chartsByCategory[chart.category]) chartsByCategory[chart.category] = [];
-    chartsByCategory[chart.category]!.push(chart);
+    const cat = CHART_CATEGORY[chart.type];
+    if (!chartsByCategory[cat]) chartsByCategory[cat] = [];
+    chartsByCategory[cat]!.push(chart);
   }
 
   return (
@@ -399,7 +400,7 @@ export default function PlayerPage() {
                           setPdfUrl(chart.fileUrl);
                         }}
                       >
-                        <div className="text-sm font-medium truncate">{chart.name}</div>
+                        <div className="text-sm font-medium truncate">{CHART_TYPE_LABELS[chart.type]}</div>
                         <div className="text-xs text-gray-500 mt-1">
                           {chart.uploadedAt
                             ? new Date(chart.uploadedAt).toLocaleDateString("zh-CN")
@@ -428,7 +429,7 @@ export default function PlayerPage() {
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
           <div className="bg-gray-800 rounded-xl w-full max-w-4xl h-[90vh] flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-gray-700">
-              <span className="font-medium">{selectedChart.name}</span>
+              <span className="font-medium">{CHART_TYPE_LABELS[selectedChart.type]}</span>
               <button
                 onClick={() => {
                   setSelectedChart(null);
@@ -442,7 +443,7 @@ export default function PlayerPage() {
             <iframe
               src={pdfUrl}
               className="flex-1 rounded-b-xl"
-              title={selectedChart.name}
+              title={CHART_TYPE_LABELS[selectedChart.type]}
             />
           </div>
         </div>
