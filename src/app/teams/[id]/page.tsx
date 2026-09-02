@@ -80,12 +80,13 @@ export default function TeamPage() {
       const res = await fetch("/api/parse-pdf", { method: "POST", body: fd });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      const existing = new Set(team?.players.map(p => p.name) ?? []);
+      const existingNums = new Set(team?.players.map(p => p.number) ?? []);
       setParsedPlayers(
         (data.players as { battingOrder: number; name: string; number: string; atBats: AtBat[] }[])
-          .filter(p => p.name)
-          .map(p => ({ ...p, atBats: p.atBats ?? [], selected: !existing.has(p.name) }))
+          .filter(p => p.number)
+          .map(p => ({ ...p, atBats: p.atBats ?? [], selected: true }))
       );
+      void existingNums;
     } catch (err) {
       setParseError("解析失败，请重试");
       console.error(err);
@@ -98,12 +99,12 @@ export default function TeamPage() {
     setImporting(true);
     const currentPlayers = team.players;
     for (const p of parsedPlayers.filter(p => p.selected)) {
-      const existing = currentPlayers.find(ep => ep.name === p.name);
+      const existing = currentPlayers.find(ep => ep.number === p.number);
       let playerId: string;
       if (existing) {
         playerId = existing.id;
       } else {
-        const newP = await addPlayer(params.id, { name: p.name, number: p.number, position: "P" });
+        const newP = await addPlayer(params.id, { name: "", number: p.number, position: "P" });
         playerId = newP.id;
       }
       if (p.atBats && p.atBats.length > 0 && (importDate || importOpponent)) {
@@ -314,7 +315,7 @@ export default function TeamPage() {
                 <p className="text-sm mb-3" style={{ color: "#94a3b8" }}>从 PDF 中识别到以下球员，勾选要导入的：</p>
                 <div className="space-y-2 mb-5 max-h-64 overflow-y-auto">
                   {parsedPlayers.map((p, i) => {
-                    const existing = team.players.find(ep => ep.name === p.name);
+                    const existing = team.players.find(ep => ep.number === p.number);
                     return (
                       <label key={i} className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"
                         style={{ background: "#0f172a", border: "1px solid #334155" }}>
@@ -322,7 +323,7 @@ export default function TeamPage() {
                           onChange={() => setParsedPlayers(prev => prev.map((x, j) => j === i ? {...x, selected: !x.selected} : x))}
                           className="w-4 h-4 accent-green-500" />
                         <span className="text-sm font-medium text-white">
-                          {p.battingOrder}棒 · #{p.number} {p.name}
+                          {p.battingOrder}棒 · #{p.number}
                         </span>
                         <span className="text-xs ml-auto" style={{ color: "#64748b" }}>
                           {p.atBats.length}打席
