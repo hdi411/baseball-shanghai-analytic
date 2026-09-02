@@ -167,7 +167,7 @@ export default function PlayerPage() {
   const [team, setTeam] = useState<Team | null>(null);
   const [player, setPlayer] = useState<Player | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"stats" | "charts" | "pitching">("stats");
+  const [activeTab, setActiveTab] = useState<"stats" | "charts">("stats");
   const [selectedChart, setSelectedChart] = useState<ChartFile | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
@@ -270,7 +270,7 @@ export default function PlayerPage() {
 
         {/* ── Tabs ──────────────────────────────────────────────────────── */}
         <div className="flex gap-1 mb-6 bg-gray-800 rounded-lg p-1 w-fit">
-          {(["stats", "charts", "pitching"] as const).map((tab) => (
+          {(["stats", "charts"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -280,7 +280,7 @@ export default function PlayerPage() {
                   : "text-gray-400 hover:text-white"
               }`}
             >
-              {tab === "stats" ? "打击数据" : tab === "charts" ? "图表" : "投球位置"}
+              {tab === "stats" ? "打击数据" : "图表"}
             </button>
           ))}
         </div>
@@ -368,6 +368,14 @@ export default function PlayerPage() {
               </div>
             )}
 
+            {/* Faced pitches heatmap from Supabase */}
+            {player.pitchLocationStats.length > 0 && (
+              <div className="bg-gray-800 rounded-lg p-6">
+                <h3 className="text-lg font-semibold mb-2">面对来球位置 <span className="text-sm font-normal text-gray-400">Faced Pitches</span></h3>
+                <PitchZoneHeatMap stats={player.pitchLocationStats} />
+              </div>
+            )}
+
             {/* First-pitch heat map (from AI-extracted pitchZone) */}
             {player.gameStats.some((gs) =>
               gs.atBats.some((ab) => ab.pitchZone !== undefined)
@@ -417,13 +425,7 @@ export default function PlayerPage() {
           </div>
         )}
 
-        {/* ── Pitching tab ──────────────────────────────────────────────── */}
-        {activeTab === "pitching" && (
-          <div className="bg-gray-800 rounded-lg p-6">
-            <h3 className="text-lg font-semibold mb-6">投球位置分布（5×5热图）</h3>
-            <PitchZoneHeatMap stats={player.pitchLocationStats} />
-          </div>
-        )}
+
       </div>
 
       {/* ── PDF overlay ───────────────────────────────────────────────────── */}
