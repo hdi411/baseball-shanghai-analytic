@@ -1,503 +1,451 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { getTeam, deleteChart, deleteGameStat } from "@/lib/store";
-import { getFile } from "@/lib/db";
-import type { Team, Player, ChartFile, ChartCategory, GameStat, AtBat, PitchLocationStat } from "@/lib/types";
-import { CHART_TYPE_LABELS, CHART_TYPE_EN, CHART_CATEGORY } from "@/lib/types";
 
-type Tab = "batting" | "pitching" | "scouting" | "stats";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { Team, Player, ChartFile, ChartCategory, GameStat, AtBat, PitchLocationStat } from "@/lib/types";
+import { getTeam } from "@/lib/store";
 
-const TAB_LABELS: Record<Tab, string> = {
-  batting: "打击图表",
-  pitching: "投球图表",
-  scouting: "球探图表",
-  stats: "打席数据",
-};
-
-
-// ─── Pitch Location Heat Map from DB stats ───────────────────────────────────
+// ── Pitch zone heat-map from Supabase pitch_location_stats ──────────────────
 function PitchZoneHeatMap({ stats }: { stats: PitchLocationStat[] }) {
-  const ROWS = 5;
-  const COLS = 5;
-  const rowLabels = ["顶", "高", "中", "低", "底"];
+  if (stats.length === 0) {
+    return (
+      <div className="text-center text-gray-400 py-8">暂无投球位置数据</div>
+    );
+  }
+
+  // Aggregate all zone counts
+  const totals = Array(25).fill(0);
+  let grandTotal = 0;
+  for (const s of stats) {
+    for (let i = 0; i < 25; i++) {
+      totals[i] += s.zoneCounts[i] ?? 0;
+    }
+    grandTotal += s.zoneCounts.reduce((a, b) => a + b, 0);
+  }
+
+  const maxCount = Math.max(...totals, 1);
+
   const colLabels = ["外", "", "", "", "内"];
-  const CELL = 44;
-
-  if (stats.length === 0) return null;
-
-  // Aggregate all games
-  const totalCounts = Array(25).fill(0);
-  stats.forEach((s) => {
-    s.zoneCounts.forEach((v, i) => { totalCounts[i] += (v || 0); });
-  });
-  const total = totalCounts.reduce((a, b) => a + b, 0);
-  const maxCount = Math.max(...totalCounts);
-  if (total === 0) return null;
+  const rowLabels = ["高", "", "", "", "低"];
 
   return (
-    <div className="card p-5 mb-6">
-      <div className="flex items-center justify-between mb-1">
-        <h3 className="font-semibold text-white">投球位置分布</h3>
-        <span className="text-xs" style={{ color: "#64748b" }}>{stats.length} 场 · 共 {total} 球</span>
-      </div>
-      <p className="text-xs mb-4" style={{ color: "#475569" }}>投手视角 · 右侧=内角</p>
-      <div className="flex gap-3 items-start justify-center">
+    <div>
+      <div className="flex items-start gap-4">
         {/* Row labels */}
-        <div className="flex flex-col" style={{ gap: 2, paddingTop: 20 }}>
-          {rowLabels.map((l) => (
-            <div key={l} className="flex items-center justify-center text-xs"
-              style={{ height: CELL, color: "#64748b", width: 16 }}>{l}</div>
+        <div className="flex flex-col justify-around" style={{ height: 250 }}>
+          {rowLabels.map((l, i) => (
+            <span key={i} className="text-xs text-gray-400 w-4 text-right">{l}</span>
           ))}
         </div>
         {/* Grid */}
         <div>
-          <div className="flex mb-1" style={{ gap: 2 }}>
-            {colLabels.map((l, i) => (
-              <div key={i} className="text-center text-xs" style={{ width: CELL, color: "#64748b" }}>{l}</div>
-            ))}
-          </div>
-          <div className="rounded-lg overflow-hidden" style={{ border: "2px solid #334155" }}>
-            {Array.from({ length: ROWS }, (_, row) => (
-              <div key={row} className="flex" style={{ borderBottom: row < ROWS - 1 ? "1px solid #334155" : "none" }}>
-                {Array.from({ length: COLS }, (_, col) => {
-                  const zone = row * COLS + col;
-                  const count = totalCounts[zone];
-                  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-                  const intensity = maxCount > 0 ? count / maxCount : 0;
-                  const alpha = count > 0 ? 0.1 + intensity * 0.7 : 0;
-                  const bg = count > 0 ? `rgba(34,197,94,${alpha.toFixed(2)})` : "#0f172a";
-                  const textColor = intensity > 0.55 ? "#fff" : "#94a3b8";
-                  return (
-                    <div key={col} className="flex flex-col items-center justify-center"
-                      style={{
-                        width: CELL, height: CELL, background: bg,
-                        borderRight: col < COLS - 1 ? "1px solid #334155" : "none",
-                      }}>
-                      {count > 0 ? (
-                        <>
-                          <span className="font-bold" style={{ fontSize: 11, color: textColor, lineHeight: 1.2 }}>{pct}%</span>
-                          <span style={{ fontSize: 9, color: "#94a3b8", lineHeight: 1 }}>{count}球</span>
-                        </>
-                      ) : (
-                        <span style={{ fontSize: 9, color: "#334155" }}>—</span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-between mt-1 text-xs" style={{ color: "#475569" }}>
-            <span>← 外角</span><span>内角 →</span>
-          </div>
-        </div>
-        {/* Legend */}
-        <div className="flex flex-col gap-2 text-xs" style={{ color: "#64748b", paddingTop: 20 }}>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-sm" style={{ background: "rgba(34,197,94,0.8)" }} />高频
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-sm" style={{ background: "rgba(34,197,94,0.3)" }} />低频
-          </div>
-        </div>
-      </div>
-      {/* Per-game breakdown */}
-      {stats.length > 1 && (
-        <div className="mt-4 pt-4" style={{ borderTop: "1px solid #1e293b" }}>
-          <p className="text-xs mb-2" style={{ color: "#64748b" }}>各场记录</p>
-          <div className="flex flex-wrap gap-2">
-            {[...stats].reverse().map((s) => {
-              const gameTotal = s.zoneCounts.reduce((a, b) => a + b, 0);
+          <div
+            className="grid border border-gray-600"
+            style={{ gridTemplateColumns: "repeat(5, 50px)", gridTemplateRows: "repeat(5, 50px)" }}
+          >
+            {totals.map((count, idx) => {
+              const prob = grandTotal > 0 ? count / grandTotal : 0;
+              const intensity = count / maxCount;
+              const bg = `rgba(34,197,94,${Math.max(0.05, intensity)})`;
               return (
-                <div key={s.id} className="text-xs px-3 py-1.5 rounded-lg" style={{ background: "#0f172a", border: "1px solid #334155", color: "#94a3b8" }}>
-                  {s.opponent ? `vs ${s.opponent}` : "—"}
-                  {s.gameDate && ` · ${s.gameDate}`}
-                  <span className="ml-1 text-white">{gameTotal}球</span>
+                <div
+                  key={idx}
+                  style={{ backgroundColor: bg }}
+                  className="border border-gray-700 flex flex-col items-center justify-center"
+                >
+                  <span className="text-white text-xs font-bold">{count}</span>
+                  <span className="text-gray-300 text-[10px]">
+                    {grandTotal > 0 ? (prob * 100).toFixed(1) + "%" : "0%"}
+                  </span>
                 </div>
               );
             })}
           </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Pitch Location Heat Map (5×5) ───────────────────────────────────────────
-function PitchHeatMap({ atBats }: { atBats: AtBat[] }) {
-  const ROWS = 5;
-  const COLS = 5;
-  const TOTAL_ZONES = ROWS * COLS; // 25
-  const rowLabels = ["顶", "高", "中", "低", "底"];
-  const colLabels = ["外", "", "", "", "内"];
-
-  const zoned = atBats.filter((ab) => ab.pitchZone !== undefined && ab.pitchZone >= 0 && ab.pitchZone < TOTAL_ZONES);
-  const total = zoned.length;
-  if (total === 0) return null;
-
-  const counts = Array(TOTAL_ZONES).fill(0);
-  zoned.forEach((ab) => { counts[ab.pitchZone!]++; });
-  const maxCount = Math.max(...counts);
-
-  const CELL = 44; // px
-
-  return (
-    <div className="card p-5 mb-6">
-      <h3 className="font-semibold text-white mb-1">投球位置分布</h3>
-      <p className="text-xs mb-4" style={{ color: "#64748b" }}>首球落点 · 共 {total} 球（5×5 格）</p>
-      <div className="flex gap-3 items-start justify-center">
-        {/* Row labels */}
-        <div className="flex flex-col" style={{ gap: 2, paddingTop: 20 }}>
-          {rowLabels.map((l) => (
-            <div key={l} className="flex items-center justify-center text-xs"
-              style={{ height: CELL, color: "#64748b", width: 16 }}>{l}</div>
-          ))}
-        </div>
-        {/* Grid */}
-        <div>
           {/* Col labels */}
-          <div className="flex mb-1" style={{ gap: 2 }}>
+          <div className="flex mt-1" style={{ width: 250 }}>
             {colLabels.map((l, i) => (
-              <div key={i} className="text-center text-xs" style={{ width: CELL, color: "#64748b" }}>{l}</div>
+              <span key={i} className="text-xs text-gray-400 text-center" style={{ width: 50 }}>{l}</span>
             ))}
           </div>
-          {/* Cells */}
-          <div className="rounded-lg overflow-hidden" style={{ border: "2px solid #334155" }}>
-            {Array.from({ length: ROWS }, (_, row) => (
-              <div key={row} className="flex" style={{ borderBottom: row < ROWS - 1 ? "1px solid #334155" : "none" }}>
-                {Array.from({ length: COLS }, (_, col) => {
-                  const zone = row * COLS + col;
-                  const count = counts[zone];
-                  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-                  const intensity = maxCount > 0 ? count / maxCount : 0;
-                  const alpha = count > 0 ? 0.1 + intensity * 0.7 : 0;
-                  const bg = count > 0 ? `rgba(34,197,94,${alpha.toFixed(2)})` : "#0f172a";
-                  const textColor = intensity > 0.55 ? "#fff" : "#94a3b8";
-                  return (
-                    <div key={col} className="flex flex-col items-center justify-center"
-                      style={{
-                        width: CELL, height: CELL,
-                        background: bg,
-                        borderRight: col < COLS - 1 ? "1px solid #334155" : "none",
-                        transition: "background 0.2s",
-                      }}>
-                      {count > 0 ? (
-                        <>
-                          <span className="font-bold" style={{ fontSize: 11, color: textColor, lineHeight: 1.2 }}>{pct}%</span>
-                          <span style={{ fontSize: 9, color: "#94a3b8", lineHeight: 1 }}>{count}球</span>
-                        </>
-                      ) : (
-                        <span style={{ fontSize: 9, color: "#334155" }}>—</span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-between mt-1 text-xs" style={{ color: "#475569" }}>
-            <span>← 外角</span><span>内角 →</span>
-          </div>
+          <div className="text-center text-xs text-gray-500 mt-1">← 外角　　　　内角 →（投手视角）</div>
         </div>
-        {/* Legend */}
-        <div className="flex flex-col gap-2 text-xs" style={{ color: "#64748b", paddingTop: 20 }}>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-sm" style={{ background: "rgba(34,197,94,0.8)" }} />高频
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-sm" style={{ background: "rgba(34,197,94,0.3)" }} />低频
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-sm" style={{ background: "#0f172a", border: "1px solid #334155" }} />无
-          </div>
-        </div>
+      </div>
+      <div className="mt-3 text-xs text-gray-500">
+        总投球数：{grandTotal}　来源场次：{stats.length}
       </div>
     </div>
   );
 }
 
-export default function PlayerPage() {
-  const params = useParams<{ id: string; playerId: string }>();
-  const [team, setTeam] = useState<Team | null>(null);
-  const [player, setPlayer] = useState<Player | null>(null);
-  const [tab, setTab] = useState<Tab>("batting");
-  const [pdfUrls, setPdfUrls] = useState<Record<string, string>>({});
-  const [viewingChart, setViewingChart] = useState<ChartFile | null>(null);
-  const [viewUrl, setViewUrl] = useState<string | null>(null);
-
-  const reload = useCallback(async () => {
-    const t = await getTeam(params.id);
-    setTeam(t);
-    const p = t?.players.find((p) => p.id === params.playerId) ?? null;
-    setPlayer(p);
-  }, [params.id, params.playerId]);
-
-  useEffect(() => { reload(); }, [reload]);
-
-  useEffect(() => {
-    if (!player) return;
-    const visible = player.charts.filter((c) => (CHART_CATEGORY[c.type] as ChartCategory) === tab);
-    visible.forEach(async (c) => {
-      if (!pdfUrls[c.id]) {
-        const url = await getFile(c.id);
-        if (url) setPdfUrls((prev) => ({ ...prev, [c.id]: url }));
+// ── Per-at-bat pitch zone heat-map from AI-extracted pitchZone ───────────────
+function PitchHeatMap({ gameStats }: { gameStats: GameStat[] }) {
+  const counts = Array(25).fill(0);
+  let total = 0;
+  for (const gs of gameStats) {
+    for (const ab of gs.atBats) {
+      if (ab.pitchZone !== undefined && ab.pitchZone >= 0 && ab.pitchZone < 25) {
+        counts[ab.pitchZone]++;
+        total++;
       }
-    });
-  }, [player, tab, pdfUrls]);
-
-  async function handleView(chart: ChartFile) {
-    setViewingChart(chart);
-    const url = pdfUrls[chart.id] ?? await getFile(chart.id);
-    setViewUrl(url);
+    }
   }
 
-  async function handleDelete(chartId: string) {
-    if (!confirm("删除这张图表？")) return;
-    await deleteChart(params.id, params.playerId, chartId);
-    setViewingChart(null);
-    setViewUrl(null);
-    await reload();
+  if (total === 0) {
+    return (
+      <div className="text-center text-gray-400 py-4 text-sm">
+        暂无首球位置数据（需PDF中含投球区域信息）
+      </div>
+    );
   }
 
-  async function handleDeleteStat(statId: string) {
-    if (!confirm("删除这条打席记录？")) return;
-    await deleteGameStat(params.id, params.playerId, statId);
-    await reload();
-  }
-
-  if (!team || !player) return null;
-
-  const chartsForTab = player.charts.filter((c) => (CHART_CATEGORY[c.type] as ChartCategory) === tab);
-  const gameStats: GameStat[] = player.gameStats ?? [];
-  const allAtBats = gameStats.flatMap(g => g.atBats);
-  const totalAtBats = allAtBats.length;
-  const fpsCount = allAtBats.filter(a => a.firstPitchStrike).length;
-  const fpsPct = totalAtBats > 0 ? Math.round((fpsCount / totalAtBats) * 100) : null;
+  const maxCount = Math.max(...counts, 1);
+  const colLabels = ["外", "", "", "", "内"];
+  const rowLabels = ["高", "", "", "", "低"];
 
   return (
-    <div className="min-h-screen">
-      <nav style={{ background: "#1e293b", borderBottom: "1px solid #334155" }} className="sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href={`/teams/${team.id}`} className="btn btn-ghost text-sm px-3">← 返回</Link>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs text-white"
-                style={{ background: team.color ?? "#22c55e" }}>
-                {team.shortName ?? team.name.slice(0,2)}
-              </div>
-              <span className="text-sm" style={{ color: "#64748b" }}>{team.name}</span>
-              <span style={{ color: "#334155" }}>/</span>
-              <span className="font-semibold text-white">{player.name || `#${player.number}`}</span>
-            </div>
+    <div>
+      <div className="flex items-start gap-4">
+        <div className="flex flex-col justify-around" style={{ height: 250 }}>
+          {rowLabels.map((l, i) => (
+            <span key={i} className="text-xs text-gray-400 w-4 text-right">{l}</span>
+          ))}
+        </div>
+        <div>
+          <div
+            className="grid border border-gray-600"
+            style={{ gridTemplateColumns: "repeat(5, 50px)", gridTemplateRows: "repeat(5, 50px)" }}
+          >
+            {counts.map((count, idx) => {
+              const prob = total > 0 ? count / total : 0;
+              const intensity = count / maxCount;
+              const bg = `rgba(59,130,246,${Math.max(0.05, intensity)})`;
+              return (
+                <div
+                  key={idx}
+                  style={{ backgroundColor: bg }}
+                  className="border border-gray-700 flex flex-col items-center justify-center"
+                >
+                  <span className="text-white text-xs font-bold">{count}</span>
+                  <span className="text-gray-300 text-[10px]">
+                    {total > 0 ? (prob * 100).toFixed(1) + "%" : "0%"}
+                  </span>
+                </div>
+              );
+            })}
           </div>
-          <Link href={`/upload?teamId=${team.id}&playerId=${player.id}`} className="btn btn-primary text-sm">
-            + 上传图表
-          </Link>
+          <div className="flex mt-1" style={{ width: 250 }}>
+            {colLabels.map((l, i) => (
+              <span key={i} className="text-xs text-gray-400 text-center" style={{ width: 50 }}>{l}</span>
+            ))}
+          </div>
+          <div className="text-center text-xs text-gray-500 mt-1">← 外角　　　　内角 →（投手视角）</div>
+        </div>
+      </div>
+      <div className="mt-3 text-xs text-gray-500">首球总数：{total}</div>
+    </div>
+  );
+}
+
+// ── Category label helper ────────────────────────────────────────────────────
+function categoryLabel(cat: ChartCategory): string {
+  const map: Record<ChartCategory, string> = {
+    hitting: "打击",
+    pitching: "投球",
+    fielding: "守备",
+    baserunning: "跑垒",
+    other: "其他",
+  };
+  return map[cat] ?? cat;
+}
+
+// ── Main page ────────────────────────────────────────────────────────────────
+export default function PlayerPage() {
+  const params = useParams();
+  const router = useRouter();
+  const teamId = params.id as string;
+  const playerId = params.playerId as string;
+
+  const [team, setTeam] = useState<Team | null>(null);
+  const [player, setPlayer] = useState<Player | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"stats" | "charts" | "pitching">("stats");
+  const [selectedChart, setSelectedChart] = useState<ChartFile | null>(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const t = await getTeam(teamId);
+        setTeam(t);
+        const p = t?.players.find((pl) => pl.id === playerId) ?? null;
+        setPlayer(p);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [teamId, playerId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">加载中...</div>
+      </div>
+    );
+  }
+
+  if (!team || !player) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">未找到球员</div>
+      </div>
+    );
+  }
+
+  // ── Aggregate stats ──────────────────────────────────────────────────────
+  const allAtBats: AtBat[] = player.gameStats.flatMap((gs) => gs.atBats);
+  const totalAB = allAtBats.length;
+  const hits = allAtBats.filter((ab) =>
+    ["1B", "2B", "3B", "HR"].includes(ab.result)
+  ).length;
+  const avg = totalAB > 0 ? (hits / totalAB).toFixed(3) : ".000";
+  const firstPitchStrikes = allAtBats.filter((ab) => ab.firstPitchStrike).length;
+  const fpsRate =
+    totalAB > 0 ? ((firstPitchStrikes / totalAB) * 100).toFixed(1) : "0.0";
+
+  // At-bat result breakdown
+  const resultCounts: Record<string, number> = {};
+  for (const ab of allAtBats) {
+    resultCounts[ab.result] = (resultCounts[ab.result] ?? 0) + 1;
+  }
+
+  // Charts grouped by category
+  const chartsByCategory: Partial<Record<ChartCategory, ChartFile[]>> = {};
+  for (const chart of player.charts) {
+    if (!chartsByCategory[chart.category]) chartsByCategory[chart.category] = [];
+    chartsByCategory[chart.category]!.push(chart);
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-white">
+      {/* ── Top nav ──────────────────────────────────────────────────────── */}
+      <nav className="bg-gray-800 border-b border-gray-700 px-6 py-4">
+        <div className="max-w-6xl mx-auto flex items-center gap-4">
+          <button
+            onClick={() => router.push(`/teams/${teamId}`)}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            ← {team.name}
+          </button>
+          <span className="text-gray-600">/</span>
+          <span className="text-white font-medium">
+            #{player.number}
+            {player.name ? ` ${player.name}` : ""}
+          </span>
+          <div className="ml-auto flex gap-2 text-sm text-gray-400">
+            {player.throws && <span>投：{player.throws}</span>}
+            {player.bats && <span>打：{player.bats}</span>}
+            <span>{player.position}</span>
+          </div>
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="card p-6 mb-6 flex flex-wrap gap-6 items-center">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold text-white"
-            style={{ background: team.color ?? "#22c55e" }}>
-            #{player.number}
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white">{player.name || `#${player.number}`}</h1>
-            <div className="flex items-center gap-3 mt-1">
-              <span className="badge text-white" style={{ background: "#334155" }}>{player.position}</span>
-              {player.bats && <span className="text-sm" style={{ color: "#64748b" }}>打击：{player.bats === "R" ? "右打" : player.bats === "L" ? "左打" : "两打"}</span>}
-              {player.throws && <span className="text-sm" style={{ color: "#64748b" }}>投球：{player.throws === "R" ? "右投" : "左投"}</span>}
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        {/* ── Summary cards ─────────────────────────────────────────────── */}
+        <div className="grid grid-cols-4 gap-4 mb-8">
+          {[
+            { label: "打席", value: totalAB },
+            { label: "安打", value: hits },
+            { label: "打击率", value: avg },
+            { label: "首球好球率", value: `${fpsRate}%` },
+          ].map((c) => (
+            <div key={c.label} className="bg-gray-800 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-green-400">{c.value}</div>
+              <div className="text-sm text-gray-400 mt-1">{c.label}</div>
             </div>
-          </div>
-          <div className="ml-auto flex gap-6">
-            {(["batting","pitching","scouting"] as Tab[]).map((cat) => (
-              <div key={cat} className="text-center">
-                <div className="text-xl font-bold text-white">
-                  {player.charts.filter(c => (CHART_CATEGORY[c.type] as ChartCategory) === cat).length}
-                </div>
-                <div className="text-xs" style={{ color: "#64748b" }}>{TAB_LABELS[cat]}</div>
-              </div>
-            ))}
-            <div className="text-center">
-              <div className="text-xl font-bold text-white">{gameStats.length}</div>
-              <div className="text-xs" style={{ color: "#64748b" }}>打席场次</div>
-            </div>
-            {fpsPct !== null && (
-              <div className="text-center">
-                <div className="text-xl font-bold text-green-400">{fpsPct}%</div>
-                <div className="text-xs" style={{ color: "#64748b" }}>首球好球率</div>
-              </div>
-            )}
-          </div>
+          ))}
         </div>
 
-        <div className="flex gap-2 mb-6 p-1 rounded-lg" style={{ background: "#1e293b", border: "1px solid #334155", width: "fit-content" }}>
-          {(["batting","pitching","scouting","stats"] as Tab[]).map((t) => (
-            <button key={t} className={`tab ${tab === t ? "active" : ""}`} onClick={() => setTab(t)}>
-              {TAB_LABELS[t]}
-              {t !== "stats" && (
-                <span className="ml-1 text-xs opacity-70">
-                  ({player.charts.filter(c => (CHART_CATEGORY[c.type] as ChartCategory) === t).length})
-                </span>
-              )}
-              {t === "stats" && <span className="ml-1 text-xs opacity-70">({gameStats.length})</span>}
+        {/* ── Tabs ──────────────────────────────────────────────────────── */}
+        <div className="flex gap-1 mb-6 bg-gray-800 rounded-lg p-1 w-fit">
+          {(["stats", "charts", "pitching"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === tab
+                  ? "bg-green-600 text-white"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              {tab === "stats" ? "打击数据" : tab === "charts" ? "图表" : "投球位置"}
             </button>
           ))}
         </div>
 
-        {tab === "pitching" && player.pitchLocationStats.length > 0 && (
-          <PitchZoneHeatMap stats={player.pitchLocationStats} />
-        )}
-
-        {tab !== "stats" && (
-          chartsForTab.length === 0 ? (
-            <div className="text-center py-16" style={{ color: "#64748b" }}>
-              <div className="text-5xl mb-3">📄</div>
-              <p className="text-lg mb-1">暂无{TAB_LABELS[tab]}</p>
-              <p className="text-sm mb-4">点击右上角「上传图表」新增</p>
-              <Link href={`/upload?teamId=${team.id}&playerId=${player.id}`} className="btn btn-primary inline-flex">
-                上传图表
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {chartsForTab.map((chart) => (
-                <div key={chart.id} className="card overflow-hidden group cursor-pointer" onClick={() => handleView(chart)}>
-                  <div className="h-40 relative" style={{ background: "#0f172a" }}>
-                    {pdfUrls[chart.id] ? (
-                      <iframe src={pdfUrls[chart.id]} className="w-full h-full border-0 pointer-events-none" title={chart.fileName} />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-4xl" style={{ color: "#334155" }}>📋</div>
-                    )}
-                    <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity" />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span className="bg-white text-black text-sm font-medium px-3 py-1 rounded-full">查看</span>
-                    </div>
-                  </div>
-                  <div className="p-3">
-                    <div className="text-xs font-medium text-white mb-1 truncate">{CHART_TYPE_LABELS[chart.type]}</div>
-                    <div className="text-xs truncate" style={{ color: "#64748b" }}>
-                      {chart.opponent && <span>{chart.opponent} · </span>}
-                      {chart.gameDate && <span>{chart.gameDate} · </span>}
-                      {new Date(chart.uploadedAt).toLocaleDateString("zh-CN")}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )
-        )}
-
-        {tab === "stats" && (
-          gameStats.length === 0 ? (
-            <div className="text-center py-16" style={{ color: "#64748b" }}>
-              <div className="text-5xl mb-3">📊</div>
-              <p className="text-lg mb-1">暂无打席数据</p>
-              <p className="text-sm">通过「🤖 智能导入」上传记录表 PDF 可自动提取打席数据</p>
-            </div>
-          ) : (
-            <>
-              <div className="card p-5 mb-6">
-                <h3 className="font-semibold text-white mb-4">首球好球统计</h3>
-                <div className="grid grid-cols-3 gap-4 mb-4">
-                  <div className="text-center p-3 rounded-lg" style={{ background: "#0f172a" }}>
-                    <div className="text-2xl font-bold text-white">{totalAtBats}</div>
-                    <div className="text-xs mt-1" style={{ color: "#64748b" }}>总打席数</div>
-                  </div>
-                  <div className="text-center p-3 rounded-lg" style={{ background: "#0f172a" }}>
-                    <div className="text-2xl font-bold text-green-400">{fpsCount}</div>
-                    <div className="text-xs mt-1" style={{ color: "#64748b" }}>首球好球</div>
-                  </div>
-                  <div className="text-center p-3 rounded-lg" style={{ background: "#0f172a" }}>
-                    <div className="text-2xl font-bold text-blue-400">{fpsPct}%</div>
-                    <div className="text-xs mt-1" style={{ color: "#64748b" }}>好球率</div>
-                  </div>
-                </div>
-                <div className="h-3 rounded-full overflow-hidden" style={{ background: "#1e293b" }}>
-                  <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${fpsPct ?? 0}%` }} />
-                </div>
-                <div className="flex justify-between text-xs mt-1" style={{ color: "#64748b" }}>
-                  <span>坏球 {totalAtBats - fpsCount} 次</span>
-                  <span>好球 {fpsCount} 次</span>
-                </div>
-              </div>
-              <PitchHeatMap atBats={allAtBats} />
-              <div className="space-y-4">
-                {[...gameStats].reverse().map((stat) => {
-                  const gameFps = stat.atBats.filter(a => a.firstPitchStrike).length;
-                  const gamePct = stat.atBats.length > 0 ? Math.round((gameFps / stat.atBats.length) * 100) : 0;
-                  return (
-                    <div key={stat.id} className="card p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <div className="font-medium text-white">
-                            {stat.opponent ? `vs ${stat.opponent}` : "比赛记录"}
-                            <span className="ml-2 text-xs" style={{ color: "#64748b" }}>{stat.battingOrder}棒</span>
-                          </div>
-                          <div className="text-xs mt-0.5" style={{ color: "#64748b" }}>
-                            {stat.gameDate || new Date(stat.uploadedAt).toLocaleDateString("zh-CN")}
-                            {" · "}{stat.atBats.length} 打席 · 首球好球率 {gamePct}%
-                          </div>
-                        </div>
-                        <button onClick={() => handleDeleteStat(stat.id)}
-                          className="text-red-400 hover:text-red-300 text-sm opacity-60 hover:opacity-100">🗑</button>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {stat.atBats.map((ab, i) => {
-                          const zoneRow = ab.pitchZone !== undefined ? Math.floor(ab.pitchZone / 5) : null;
-                          const zoneCol = ab.pitchZone !== undefined ? ab.pitchZone % 5 : null;
-                          const zoneLabel = ab.pitchZone !== undefined
-                            ? `${["顶","高","中","低","底"][zoneRow!]}${["外","","","","内"][zoneCol!]}`
-                            : null;
-                          return (
-                            <div key={i} className="flex flex-col items-center gap-1">
-                              <div className="px-2 py-1 rounded text-xs font-mono text-white"
-                                style={{ background: "#1e293b", border: "1px solid #334155", minWidth: 36, textAlign: "center" }}>
-                                {ab.result || "—"}
-                              </div>
-                              <div className={`w-2 h-2 rounded-full ${ab.firstPitchStrike ? "bg-green-500" : "bg-red-500"}`}
-                                title={`${ab.firstPitchStrike ? "首球好球" : "首球坏球"}${zoneLabel ? " · " + zoneLabel : ""}`} />
-                              {zoneLabel && (
-                                <span className="text-center" style={{ fontSize: 9, color: "#64748b", lineHeight: 1 }}>{zoneLabel}</span>
-                              )}
+        {/* ── Stats tab ─────────────────────────────────────────────────── */}
+        {activeTab === "stats" && (
+          <div className="space-y-6">
+            {/* Per-game breakdown */}
+            {player.gameStats.length > 0 ? (
+              <div className="bg-gray-800 rounded-lg overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-700 text-gray-300">
+                      <th className="px-4 py-3 text-left">日期</th>
+                      <th className="px-4 py-3 text-left">对手</th>
+                      <th className="px-4 py-3 text-center">打席</th>
+                      <th className="px-4 py-3 text-center">安打</th>
+                      <th className="px-4 py-3 text-left">结果详情</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {player.gameStats.map((gs) => {
+                      const ab = gs.atBats.length;
+                      const h = gs.atBats.filter((a) =>
+                        ["1B", "2B", "3B", "HR"].includes(a.result)
+                      ).length;
+                      return (
+                        <tr
+                          key={gs.id}
+                          className="border-t border-gray-700 hover:bg-gray-750"
+                        >
+                          <td className="px-4 py-3 text-gray-300">{gs.gameDate ?? "—"}</td>
+                          <td className="px-4 py-3 text-gray-300">{gs.opponent ?? "—"}</td>
+                          <td className="px-4 py-3 text-center">{ab}</td>
+                          <td className="px-4 py-3 text-center">{h}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-wrap gap-1">
+                              {gs.atBats.map((a, i) => (
+                                <span
+                                  key={i}
+                                  className={`px-2 py-0.5 rounded text-xs ${
+                                    ["1B", "2B", "3B", "HR"].includes(a.result)
+                                      ? "bg-green-800 text-green-200"
+                                      : "bg-gray-700 text-gray-300"
+                                  }`}
+                                >
+                                  {a.result}
+                                  {a.pitchZone !== undefined
+                                    ? ` Z${Math.floor(a.pitchZone / 5)}-${a.pitchZone % 5}`
+                                    : ""}
+                                </span>
+                              ))}
                             </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
-            </>
-          )
+            ) : (
+              <div className="text-center text-gray-400 py-12">暂无打击数据</div>
+            )}
+
+            {/* Result breakdown */}
+            {Object.keys(resultCounts).length > 0 && (
+              <div className="bg-gray-800 rounded-lg p-6">
+                <h3 className="text-lg font-semibold mb-4">结果分布</h3>
+                <div className="flex flex-wrap gap-3">
+                  {Object.entries(resultCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([result, count]) => (
+                      <div
+                        key={result}
+                        className="bg-gray-700 rounded-lg px-4 py-3 text-center min-w-[80px]"
+                      >
+                        <div className="text-xl font-bold text-green-400">{count}</div>
+                        <div className="text-sm text-gray-400">{result}</div>
+                        <div className="text-xs text-gray-500">
+                          {totalAB > 0 ? ((count / totalAB) * 100).toFixed(1) : 0}%
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {/* First-pitch heat map (from AI-extracted pitchZone) */}
+            {player.gameStats.some((gs) =>
+              gs.atBats.some((ab) => ab.pitchZone !== undefined)
+            ) && (
+              <div className="bg-gray-800 rounded-lg p-6">
+                <h3 className="text-lg font-semibold mb-4">首球位置热图</h3>
+                <PitchHeatMap gameStats={player.gameStats} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Charts tab ────────────────────────────────────────────────── */}
+        {activeTab === "charts" && (
+          <div>
+            {player.charts.length === 0 ? (
+              <div className="text-center text-gray-400 py-12">暂无图表</div>
+            ) : (
+              Object.entries(chartsByCategory).map(([cat, charts]) => (
+                <div key={cat} className="mb-8">
+                  <h3 className="text-lg font-semibold mb-3 text-gray-300">
+                    {categoryLabel(cat as ChartCategory)}
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {charts!.map((chart) => (
+                      <div
+                        key={chart.id}
+                        className="bg-gray-800 rounded-lg p-4 cursor-pointer hover:bg-gray-700 transition-colors"
+                        onClick={() => {
+                          setSelectedChart(chart);
+                          setPdfUrl(chart.fileUrl);
+                        }}
+                      >
+                        <div className="text-sm font-medium truncate">{chart.name}</div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {chart.uploadedAt
+                            ? new Date(chart.uploadedAt).toLocaleDateString("zh-CN")
+                            : ""}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* ── Pitching tab ──────────────────────────────────────────────── */}
+        {activeTab === "pitching" && (
+          <div className="bg-gray-800 rounded-lg p-6">
+            <h3 className="text-lg font-semibold mb-6">投球位置分布（5×5热图）</h3>
+            <PitchZoneHeatMap stats={player.pitchLocationStats} />
+          </div>
         )}
       </div>
 
-      {viewingChart && (
-        <div className="fixed inset-0 z-50 flex flex-col" style={{ background: "rgba(0,0,0,0.95)" }}>
-          <div className="flex items-center justify-between px-4 py-3" style={{ background: "#1e293b", borderBottom: "1px solid #334155" }}>
-            <div>
-              <div className="font-semibold text-white text-sm">{CHART_TYPE_LABELS[viewingChart.type]}</div>
-              <div className="text-xs mt-0.5" style={{ color: "#64748b" }}>
-                {CHART_TYPE_EN[viewingChart.type]} · {viewingChart.fileName}
-                {viewingChart.opponent && ` · vs ${viewingChart.opponent}`}
-                {viewingChart.gameDate && ` · ${viewingChart.gameDate}`}
-              </div>
+      {/* ── PDF overlay ───────────────────────────────────────────────────── */}
+      {selectedChart && pdfUrl && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-800 rounded-xl w-full max-w-4xl h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-gray-700">
+              <span className="font-medium">{selectedChart.name}</span>
+              <button
+                onClick={() => {
+                  setSelectedChart(null);
+                  setPdfUrl(null);
+                }}
+                className="text-gray-400 hover:text-white text-2xl leading-none"
+              >
+                ×
+              </button>
             </div>
-            <div className="flex items-center gap-2">
-              <button className="btn btn-danger text-sm" onClick={() => handleDelete(viewingChart.id)}>🗑 删除</button>
-              <button className="btn btn-ghost text-sm" onClick={() => { setViewingChart(null); setViewUrl(null); }}>✕ 关闭</button>
-            </div>
-          </div>
-          <div className="flex-1 overflow-hidden">
-            {viewUrl ? (
-              <iframe src={viewUrl} className="w-full h-full border-0" title="PDF viewer" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center" style={{ color: "#64748b" }}>载入中...</div>
-            )}
+            <iframe
+              src={pdfUrl}
+              className="flex-1 rounded-b-xl"
+              title={selectedChart.name}
+            />
           </div>
         </div>
       )}
