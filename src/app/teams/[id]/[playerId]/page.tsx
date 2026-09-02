@@ -23,7 +23,7 @@ function PitchHeatMap({ atBats }: { atBats: AtBat[] }) {
   const COLS = 5;
   const TOTAL_ZONES = ROWS * COLS; // 25
   const rowLabels = ["顶", "高", "中", "低", "底"];
-  const colLabels = ["内", "", "", "", "外"];
+  const colLabels = ["外", "", "", "", "内"];
 
   const zoned = atBats.filter((ab) => ab.pitchZone !== undefined && ab.pitchZone >= 0 && ab.pitchZone < TOTAL_ZONES);
   const total = zoned.length;
@@ -90,7 +90,7 @@ function PitchHeatMap({ atBats }: { atBats: AtBat[] }) {
             ))}
           </div>
           <div className="flex justify-between mt-1 text-xs" style={{ color: "#475569" }}>
-            <span>← 内角</span><span>外角 →</span>
+            <span>← 外角</span><span>内角 →</span>
           </div>
         </div>
         {/* Legend */}
@@ -338,7 +338,7 @@ export default function PlayerPage() {
                           const zoneRow = ab.pitchZone !== undefined ? Math.floor(ab.pitchZone / 5) : null;
                           const zoneCol = ab.pitchZone !== undefined ? ab.pitchZone % 5 : null;
                           const zoneLabel = ab.pitchZone !== undefined
-                            ? `${["顶","高","中","低","底"][zoneRow!]}${["内","","","","外"][zoneCol!]}`
+                            ? `${["顶","高","中","低","底"][zoneRow!]}${["外","","","","内"][zoneCol!]}`
                             : null;
                           return (
                             <div key={i} className="flex flex-col items-center gap-1">
