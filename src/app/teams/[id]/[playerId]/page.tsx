@@ -11,7 +11,7 @@ import { getTeam } from "@/lib/store";
 import { getFile } from "@/lib/db";
 
 // ── Faced pitches heat-map (Supabase pitch_location_stats) ──────────────────
-function PitchZoneHeatMap({ stats }: { stats: PitchLocationStat[] }) {
+function PitchZoneHeatMap({ stats, isPitcher }: { stats: PitchLocationStat[]; isPitcher: boolean }) {
   if (stats.length === 0) {
     return <div className="text-center text-gray-400 py-8">暂无投球位置数据</div>;
   }
@@ -22,8 +22,10 @@ function PitchZoneHeatMap({ stats }: { stats: PitchLocationStat[] }) {
     grandTotal += s.zoneCounts.reduce((a, b) => a + b, 0);
   }
   const maxCount = Math.max(...totals, 1);
-  const colLabels = ["外", "", "", "", "内"];
+  const colLabels = isPitcher ? ["外", "", "", "", "内"] : ["内", "", "", "", "外"];
   const rowLabels = ["高", "", "", "", "低"];
+  const perspectiveLabel = isPitcher ? "← 外角　　　内角 →（投手视角）" : "← 内角　　　外角 →（捕手视角）";
+
   return (
     <div>
       <div className="flex items-start gap-4">
@@ -35,11 +37,15 @@ function PitchZoneHeatMap({ stats }: { stats: PitchLocationStat[] }) {
         <div>
           <div className="grid border border-gray-600"
             style={{ gridTemplateColumns: "repeat(5, 50px)", gridTemplateRows: "repeat(5, 50px)" }}>
-            {totals.map((count, idx) => {
+            {Array.from({ length: 25 }, (_, displayIdx) => {
+              const row = Math.floor(displayIdx / 5);
+              const col = displayIdx % 5;
+              const dataIdx = isPitcher ? displayIdx : row * 5 + (4 - col);
+              const count = totals[dataIdx];
               const prob = grandTotal > 0 ? count / grandTotal : 0;
               const intensity = count / maxCount;
               return (
-                <div key={idx}
+                <div key={displayIdx}
                   style={{ backgroundColor: `rgba(34,197,94,${Math.max(0.05, intensity)})` }}
                   className="border border-gray-700 flex flex-col items-center justify-center">
                   <span className="text-white text-xs font-bold">{count}</span>
@@ -55,7 +61,7 @@ function PitchZoneHeatMap({ stats }: { stats: PitchLocationStat[] }) {
               <span key={i} className="text-xs text-gray-400 text-center" style={{ width: 50 }}>{l}</span>
             ))}
           </div>
-          <div className="text-center text-xs text-gray-500 mt-1">← 外角　　　内角 →（投手视角）</div>
+          <div className="text-center text-xs text-gray-500 mt-1">{perspectiveLabel}</div>
         </div>
       </div>
       <div className="mt-3 text-xs text-gray-500">
@@ -123,7 +129,6 @@ function FirstPitchStrikeGauge({ allAtBats }: { allAtBats: AtBat[] }) {
 }
 
 // ── Spray Chart ──────────────────────────────────────────────────────────────
-// Fielder positions in SVG space (320 × 300; home plate at bottom-center)
 const FIELD_POS: Record<number, [number, number]> = {
   1: [160, 200], // P
   2: [160, 288], // C
@@ -145,9 +150,7 @@ function isHitResult(r: string) {
 }
 
 function extractFielder(result: string): number | null {
-  // Pure hit-type codes with no fielder direction
   if (["1B", "2B", "3B", "HR"].includes(result)) return null;
-  // Non-ball-in-play
   if (/^(K|BB|IBB|HBP|>)/.test(result)) return null;
   const m = result.match(/^(\d)/);
   if (m) return parseInt(m[1]);
@@ -160,7 +163,6 @@ function SprayChart({ allAtBats }: { allAtBats: AtBat[] }) {
       const fielder = extractFielder(ab.result);
       if (!fielder || !FIELD_POS[fielder]) return null;
       const [bx, by] = FIELD_POS[fielder];
-      // Deterministic jitter (golden-angle spiral)
       const angle = (i * 137.508) * (Math.PI / 180);
       const radius = Math.sqrt(i % 9) * 6;
       return {
@@ -176,31 +178,22 @@ function SprayChart({ allAtBats }: { allAtBats: AtBat[] }) {
     <div>
       <svg width="320" height="300" viewBox="0 0 320 300"
         style={{ background: "#0f172a", borderRadius: 8, display: "block" }}>
-        {/* Outfield grass — fan shape from home plate */}
         <path d="M 160 284 L 18 95 Q 160 -15 302 95 Z"
           fill="#14532d" fillOpacity="0.35" />
-        {/* Outfield wall arc */}
         <path d="M 18 95 Q 160 -15 302 95"
           fill="none" stroke="#4b5563" strokeWidth="2" />
-        {/* Infield dirt */}
         <polygon points="160,284 235,215 160,145 85,215"
           fill="#78350f" fillOpacity="0.35" stroke="#6b7280" strokeWidth="1.5" />
-        {/* Foul lines */}
         <line x1="160" y1="284" x2="18"  y2="95" stroke="#6b7280" strokeWidth="1.5" strokeDasharray="5 4"/>
         <line x1="160" y1="284" x2="302" y2="95" stroke="#6b7280" strokeWidth="1.5" strokeDasharray="5 4"/>
-        {/* Pitcher mound */}
         <circle cx="160" cy="200" r="8" fill="#292524" stroke="#6b7280" strokeWidth="1.2"/>
-        {/* Home plate */}
         <polygon points="153,291 167,291 169,283 160,279 151,283" fill="#d1d5db"/>
-        {/* Base bags */}
         <rect x="229" y="209" width="12" height="12" rx="1" fill="#e5e7eb" transform="rotate(45 235 215)"/>
         <rect x="154" y="139" width="12" height="12" rx="1" fill="#e5e7eb" transform="rotate(45 160 145)"/>
         <rect x="79"  y="209" width="12" height="12" rx="1" fill="#e5e7eb" transform="rotate(45 85 215)"/>
-        {/* Outfield labels */}
         <text x="42"  y="62" textAnchor="middle" fontSize="11" fill="#6b7280" fontFamily="sans-serif">LF</text>
         <text x="160" y="22" textAnchor="middle" fontSize="11" fill="#6b7280" fontFamily="sans-serif">CF</text>
         <text x="278" y="62" textAnchor="middle" fontSize="11" fill="#6b7280" fontFamily="sans-serif">RF</text>
-        {/* Dots */}
         {dots.map((d, i) => (
           <circle key={i} cx={d.x} cy={d.y} r="6"
             fill={d.hit ? "#22c55e" : "#6b7280"}
@@ -229,8 +222,8 @@ function SprayChart({ allAtBats }: { allAtBats: AtBat[] }) {
   );
 }
 
-// ── Hit Zone Heat-Map (option 4b) ────────────────────────────────────────────
-function HitZoneHeatMap({ gameStats }: { gameStats: GameStat[] }) {
+// ── Hit Zone Heat-Map ────────────────────────────────────────────────────────
+function HitZoneHeatMap({ gameStats, isPitcher }: { gameStats: GameStat[]; isPitcher: boolean }) {
   const zoneHits   = Array(25).fill(0);
   const zoneTotals = Array(25).fill(0);
 
@@ -253,8 +246,9 @@ function HitZoneHeatMap({ gameStats }: { gameStats: GameStat[] }) {
 
   const hitRates = zoneTotals.map((t, i) => (t > 0 ? zoneHits[i] / t : 0));
   const maxRate  = Math.max(...hitRates, 0.01);
-  const colLabels = ["外", "", "", "", "内"];
+  const colLabels = isPitcher ? ["外", "", "", "", "内"] : ["内", "", "", "", "外"];
   const rowLabels = ["高", "", "", "", "低"];
+  const perspectiveLabel = isPitcher ? "← 外角　　　内角 →（投手视角）" : "← 内角　　　外角 →（捕手视角）";
 
   return (
     <div>
@@ -267,13 +261,17 @@ function HitZoneHeatMap({ gameStats }: { gameStats: GameStat[] }) {
         <div>
           <div className="grid border border-gray-600"
             style={{ gridTemplateColumns: "repeat(5, 50px)", gridTemplateRows: "repeat(5, 50px)" }}>
-            {hitRates.map((rate, idx) => {
-              const total = zoneTotals[idx];
-              const hits  = zoneHits[idx];
+            {Array.from({ length: 25 }, (_, displayIdx) => {
+              const row = Math.floor(displayIdx / 5);
+              const col = displayIdx % 5;
+              const dataIdx = isPitcher ? displayIdx : row * 5 + (4 - col);
+              const rate  = hitRates[dataIdx];
+              const total = zoneTotals[dataIdx];
+              const hits  = zoneHits[dataIdx];
               const intensity = rate / maxRate;
               const alpha = total === 0 ? 0 : Math.max(0.07, intensity);
               return (
-                <div key={idx}
+                <div key={displayIdx}
                   style={{ backgroundColor: `rgba(251,146,60,${alpha})` }}
                   className="border border-gray-700 flex flex-col items-center justify-center">
                   {total > 0 ? (
@@ -295,7 +293,7 @@ function HitZoneHeatMap({ gameStats }: { gameStats: GameStat[] }) {
               <span key={i} className="text-xs text-gray-400 text-center" style={{ width: 50 }}>{l}</span>
             ))}
           </div>
-          <div className="text-center text-xs text-gray-500 mt-1">← 外角　　　内角 →（投手视角）</div>
+          <div className="text-center text-xs text-gray-500 mt-1">{perspectiveLabel}</div>
         </div>
       </div>
       <div className="mt-3 text-xs text-gray-500">颜色越深 = 该区安打率越高</div>
@@ -358,6 +356,9 @@ export default function PlayerPage() {
       </div>
     );
   }
+
+  // ── Perspective: pitcher sees their own view; everyone else uses catcher view
+  const isPitcher = player.position === "P";
 
   // ── Aggregate stats ────────────────────────────────────────────────────────
   const allAtBats: AtBat[] = player.gameStats.flatMap((gs) => gs.atBats);
@@ -541,7 +542,7 @@ export default function PlayerPage() {
                   面对来球位置{" "}
                   <span className="text-sm font-normal text-gray-400">Faced Pitches</span>
                 </h3>
-                <PitchZoneHeatMap stats={player.pitchLocationStats} />
+                <PitchZoneHeatMap stats={player.pitchLocationStats} isPitcher={isPitcher} />
               </div>
             )}
 
@@ -557,7 +558,7 @@ export default function PlayerPage() {
                 <p className="text-xs text-gray-500 mb-5">
                   各投球区域的安打率——颜色越深越容易打出安打
                 </p>
-                <HitZoneHeatMap gameStats={player.gameStats} />
+                <HitZoneHeatMap gameStats={player.gameStats} isPitcher={isPitcher} />
               </div>
             )}
 
