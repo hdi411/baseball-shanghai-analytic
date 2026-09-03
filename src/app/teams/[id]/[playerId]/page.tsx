@@ -539,8 +539,8 @@ export default function PlayerPage() {
             {player.pitchLocationStats.length > 0 && (
               <div className="bg-gray-800 rounded-lg p-6">
                 <h3 className="text-lg font-semibold mb-2">
-                  面对来球位置{" "}
-                  <span className="text-sm font-normal text-gray-400">Faced Pitches</span>
+                  {isPitcher ? "投球位置" : "面对来球位置"}{" "}
+                  <span className="text-sm font-normal text-gray-400">{isPitcher ? "Pitch Locations" : "Faced Pitches"}</span>
                 </h3>
                 <PitchZoneHeatMap stats={player.pitchLocationStats} isPitcher={isPitcher} />
               </div>
