@@ -365,7 +365,7 @@ export default function PlayerPage() {
   const totalAB = allAtBats.length; // actually plate appearances (打席) — BB/HBP/SAC/etc. included
   const hits    = allAtBats.filter((ab) => ["1B", "2B", "3B", "HR"].includes(ab.result)).length;
   // 打击率 (batting average) is hits / at-bats — BB/IBB/HBP/SAC/CI don't count as an at-bat
-  const NON_AB_RESULTS = new Set(["BB", "IBB", "HBP", "SAC", "CI"]);
+  const NON_AB_RESULTS = new Set(["BB", "IBB", "HBP", "SAC", "SF", "CI"]);
   const trueAB  = allAtBats.filter((ab) => !NON_AB_RESULTS.has(ab.result)).length;
   const avg     = trueAB > 0 ? (hits / trueAB).toFixed(3) : ".000";
   const fps     = allAtBats.filter((ab) => ab.firstPitchStrike).length;
