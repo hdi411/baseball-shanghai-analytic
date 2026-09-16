@@ -9,124 +9,7 @@ import {
 } from "@/lib/types";
 import { getTeam } from "@/lib/store";
 import { getFile } from "@/lib/db";
-
-// ── Faced pitches heat-map (Supabase pitch_location_stats) ──────────────────
-function PitchZoneHeatMap({ stats, isPitcher }: { stats: PitchLocationStat[]; isPitcher: boolean }) {
-  if (stats.length === 0) {
-    return <div className="text-center text-gray-400 py-8">暂无投球位置数据</div>;
-  }
-  const totals = Array(25).fill(0);
-  let grandTotal = 0;
-  for (const s of stats) {
-    for (let i = 0; i < 25; i++) totals[i] += s.zoneCounts[i] ?? 0;
-    grandTotal += s.zoneCounts.reduce((a, b) => a + b, 0);
-  }
-  const maxCount = Math.max(...totals, 1);
-  const colLabels = isPitcher ? ["外", "", "", "", "内"] : ["内", "", "", "", "外"];
-  const rowLabels = ["高", "", "", "", "低"];
-  const perspectiveLabel = isPitcher ? "← 外角　　　内角 →（投手视角）" : "← 内角　　　外角 →（捕手视角）";
-
-  return (
-    <div>
-      <div className="flex items-start gap-4">
-        <div className="flex flex-col justify-around" style={{ height: 250 }}>
-          {rowLabels.map((l, i) => (
-            <span key={i} className="text-xs text-gray-400 w-4 text-right">{l}</span>
-          ))}
-        </div>
-        <div>
-          <div className="grid border border-gray-600"
-            style={{ gridTemplateColumns: "repeat(5, 50px)", gridTemplateRows: "repeat(5, 50px)" }}>
-            {Array.from({ length: 25 }, (_, displayIdx) => {
-              const row = Math.floor(displayIdx / 5);
-              const col = displayIdx % 5;
-              const dataIdx = isPitcher ? displayIdx : row * 5 + (4 - col);
-              const count = totals[dataIdx];
-              const prob = grandTotal > 0 ? count / grandTotal : 0;
-              const intensity = count / maxCount;
-              return (
-                <div key={displayIdx}
-                  style={{ backgroundColor: `rgba(34,197,94,${Math.max(0.05, intensity)})` }}
-                  className="border border-gray-700 flex flex-col items-center justify-center">
-                  <span className="text-white text-xs font-bold">{count}</span>
-                  <span className="text-gray-300 text-[10px]">
-                    {grandTotal > 0 ? (prob * 100).toFixed(1) + "%" : "0%"}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-          <div className="flex mt-1" style={{ width: 250 }}>
-            {colLabels.map((l, i) => (
-              <span key={i} className="text-xs text-gray-400 text-center" style={{ width: 50 }}>{l}</span>
-            ))}
-          </div>
-          <div className="text-center text-xs text-gray-500 mt-1">{perspectiveLabel}</div>
-        </div>
-      </div>
-      <div className="mt-3 text-xs text-gray-500">
-        总投球数：{grandTotal}　来源场次：{stats.length}
-      </div>
-    </div>
-  );
-}
-
-// ── First Pitch Strike Gauge ─────────────────────────────────────────────────
-function FirstPitchStrikeGauge({ allAtBats }: { allAtBats: AtBat[] }) {
-  const total = allAtBats.length;
-  const fps = allAtBats.filter((ab) => ab.firstPitchStrike).length;
-  if (total === 0) return <div className="text-gray-400 text-sm">暂无打席数据</div>;
-  const rate = (fps / total) * 100;
-  const r = 48;
-  const circ = 2 * Math.PI * r;
-  const dash = (circ * rate) / 100;
-  const color = rate >= 60 ? "#22c55e" : rate >= 45 ? "#eab308" : "#ef4444";
-  return (
-    <div className="flex flex-wrap items-center gap-10">
-      {/* Circular gauge */}
-      <div className="relative" style={{ width: 130, height: 130 }}>
-        <svg width="130" height="130" viewBox="0 0 130 130">
-          <circle cx="65" cy="65" r={r} fill="none" stroke="#374151" strokeWidth="12" />
-          <circle
-            cx="65" cy="65" r={r}
-            fill="none"
-            stroke={color}
-            strokeWidth="12"
-            strokeDasharray={`${dash} ${circ}`}
-            strokeLinecap="round"
-            transform="rotate(-90 65 65)"
-          />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-bold text-white">{rate.toFixed(1)}%</span>
-          <span className="text-[10px] text-gray-400">首球好球</span>
-        </div>
-      </div>
-      {/* Bars */}
-      <div className="space-y-3 flex-1 min-w-[160px]">
-        <div>
-          <div className="flex justify-between text-sm mb-1">
-            <span className="text-gray-400">首球好球 Strike</span>
-            <span className="font-bold" style={{ color }}>{fps}</span>
-          </div>
-          <div className="w-full bg-gray-700 rounded-full h-2">
-            <div className="h-2 rounded-full" style={{ width: `${rate}%`, backgroundColor: color }} />
-          </div>
-        </div>
-        <div>
-          <div className="flex justify-between text-sm mb-1">
-            <span className="text-gray-400">首球坏球 Ball</span>
-            <span className="text-red-400 font-bold">{total - fps}</span>
-          </div>
-          <div className="w-full bg-gray-700 rounded-full h-2">
-            <div className="h-2 rounded-full bg-red-500" style={{ width: `${100 - rate}%` }} />
-          </div>
-        </div>
-        <div className="text-xs text-gray-500 pt-1">共 {total} 打席</div>
-      </div>
-    </div>
-  );
-}
+import { PitchZoneHeatMap, FirstPitchStrikeGauge, HitZoneHeatMap, isHitResult, trueAtBats } from "@/components/PlayerCharts";
 
 // ── Spray Chart ──────────────────────────────────────────────────────────────
 const FIELD_POS: Record<number, [number, number]> = {
@@ -140,14 +23,6 @@ const FIELD_POS: Record<number, [number, number]> = {
   8: [160, 38],  // CF
   9: [268, 75],  // RF
 };
-
-function isHitResult(r: string) {
-  return (
-    ["1B", "2B", "3B", "HR"].includes(r) ||
-    r.endsWith("HR") ||
-    (r.length >= 2 && r.endsWith("H") && !r.endsWith("HR"))
-  );
-}
 
 function extractFielder(result: string): number | null {
   if (["1B", "2B", "3B", "HR"].includes(result)) return null;
@@ -222,85 +97,6 @@ function SprayChart({ allAtBats }: { allAtBats: AtBat[] }) {
   );
 }
 
-// ── Hit Zone Heat-Map ────────────────────────────────────────────────────────
-function HitZoneHeatMap({ gameStats, isPitcher }: { gameStats: GameStat[]; isPitcher: boolean }) {
-  const zoneHits   = Array(25).fill(0);
-  const zoneTotals = Array(25).fill(0);
-
-  for (const gs of gameStats) {
-    for (const ab of gs.atBats) {
-      if (ab.pitchZone !== undefined && ab.pitchZone >= 0 && ab.pitchZone < 25) {
-        zoneTotals[ab.pitchZone]++;
-        if (isHitResult(ab.result)) zoneHits[ab.pitchZone]++;
-      }
-    }
-  }
-
-  if (!zoneTotals.some((t) => t > 0)) {
-    return (
-      <div className="text-center text-gray-400 py-4 text-sm">
-        暂无打区安打数据（需含 pitchZone 字段）
-      </div>
-    );
-  }
-
-  const hitRates = zoneTotals.map((t, i) => (t > 0 ? zoneHits[i] / t : 0));
-  const maxRate  = Math.max(...hitRates, 0.01);
-  const colLabels = isPitcher ? ["外", "", "", "", "内"] : ["内", "", "", "", "外"];
-  const rowLabels = ["高", "", "", "", "低"];
-  const perspectiveLabel = isPitcher ? "← 外角　　　内角 →（投手视角）" : "← 内角　　　外角 →（捕手视角）";
-
-  return (
-    <div>
-      <div className="flex items-start gap-4">
-        <div className="flex flex-col justify-around" style={{ height: 250 }}>
-          {rowLabels.map((l, i) => (
-            <span key={i} className="text-xs text-gray-400 w-4 text-right">{l}</span>
-          ))}
-        </div>
-        <div>
-          <div className="grid border border-gray-600"
-            style={{ gridTemplateColumns: "repeat(5, 50px)", gridTemplateRows: "repeat(5, 50px)" }}>
-            {Array.from({ length: 25 }, (_, displayIdx) => {
-              const row = Math.floor(displayIdx / 5);
-              const col = displayIdx % 5;
-              const dataIdx = isPitcher ? displayIdx : row * 5 + (4 - col);
-              const rate  = hitRates[dataIdx];
-              const total = zoneTotals[dataIdx];
-              const hits  = zoneHits[dataIdx];
-              const intensity = rate / maxRate;
-              const alpha = total === 0 ? 0 : Math.max(0.07, intensity);
-              return (
-                <div key={displayIdx}
-                  style={{ backgroundColor: `rgba(251,146,60,${alpha})` }}
-                  className="border border-gray-700 flex flex-col items-center justify-center">
-                  {total > 0 ? (
-                    <>
-                      <span className="text-white text-xs font-bold">{hits}/{total}</span>
-                      <span className="text-gray-300 text-[10px]">
-                        {(rate * 100).toFixed(0)}%
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-gray-600 text-xs">—</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <div className="flex mt-1" style={{ width: 250 }}>
-            {colLabels.map((l, i) => (
-              <span key={i} className="text-xs text-gray-400 text-center" style={{ width: 50 }}>{l}</span>
-            ))}
-          </div>
-          <div className="text-center text-xs text-gray-500 mt-1">{perspectiveLabel}</div>
-        </div>
-      </div>
-      <div className="mt-3 text-xs text-gray-500">颜色越深 = 该区安打率越高</div>
-    </div>
-  );
-}
-
 // ── Category label helper ────────────────────────────────────────────────────
 function categoryLabel(cat: ChartCategory): string {
   const map: Record<string, string> = {
@@ -364,9 +160,8 @@ export default function PlayerPage() {
   const allAtBats: AtBat[] = player.gameStats.flatMap((gs) => gs.atBats);
   const totalAB = allAtBats.length; // actually plate appearances (打席) — BB/HBP/SAC/etc. included
   const hits    = allAtBats.filter((ab) => ["1B", "2B", "3B", "HR"].includes(ab.result)).length;
-  // 打击率 (batting average) is hits / at-bats — BB/IBB/HBP/SAC/CI don't count as an at-bat
-  const NON_AB_RESULTS = new Set(["BB", "IBB", "HBP", "SAC", "SF", "CI"]);
-  const trueAB  = allAtBats.filter((ab) => !NON_AB_RESULTS.has(ab.result)).length;
+  // 打击率 (batting average) is hits / at-bats — BB/IBB/HBP/SAC/SF/CI don't count as an at-bat
+  const trueAB  = trueAtBats(allAtBats);
   const avg     = trueAB > 0 ? (hits / trueAB).toFixed(3) : ".000";
   const fps     = allAtBats.filter((ab) => ab.firstPitchStrike).length;
   const fpsRate = totalAB > 0 ? ((fps / totalAB) * 100).toFixed(1) : "0.0";

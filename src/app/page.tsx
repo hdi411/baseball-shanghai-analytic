@@ -24,6 +24,7 @@ export default function HomePage() {
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center">
           <span className="text-2xl mr-2">⚾</span>
           <span className="font-bold text-lg text-white">Baseball Analytics</span>
+          <Link href="/matchup" className="btn btn-ghost text-sm ml-auto">对阵分析</Link>
         </div>
       </nav>
 
