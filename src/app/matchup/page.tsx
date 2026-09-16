@@ -248,7 +248,7 @@ export default function MatchupPage() {
           选择双方先发投手和打线，下方会自动列出对方球员的历史数据倾向。
         </p>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
+        <div className="grid grid-cols-2 gap-5 mb-6">
           <LineupPanel
             team={teamA} teams={teams}
             onTeamChange={(id) => { setTeamAId(id); setLineupA(Array(LINEUP_SIZE).fill("")); setPitcherA(""); }}
@@ -263,7 +263,7 @@ export default function MatchupPage() {
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div className="grid grid-cols-2 gap-5">
           <AnalysisPanel team={teamA} lineup={lineupA} pitcherId={pitcherA} />
           <AnalysisPanel team={teamB} lineup={lineupB} pitcherId={pitcherB} />
         </div>
