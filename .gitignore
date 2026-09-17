@@ -1,3 +1,11 @@
 .next
 node_modules
 .env*
+
+# CPB data pulls — regenerable via data/cpb_official/fetch_official.py,
+# not needed in the repo (large, and the cloud sync routine re-fetches fresh)
+data/cpb_official/box_scores/
+data/cpb_official/games_list.json
+data/cpb_pbp/
+data/real_data*.json
+__pycache__/
