@@ -103,10 +103,12 @@ HEIGHT_MIN, HEIGHT_MAX = 15.0, 60.0
 
 
 def _natural_bin(value, lo, hi):
-    """0 = below lo, 1-3 = three equal thirds of [lo,hi], 4 = above hi."""
+    """0 = below lo, 1-3 = three equal thirds of [lo,hi], 4 = above hi.
+    Both edges are in-zone (matches the official is_in_strike_zone rule); the
+    middle 3x3 of the 5x5 is exactly the strike zone, the outer ring is outside it."""
     if value < lo:
         return 0
-    if value >= hi:
+    if value > hi:
         return 4
     third = (hi - lo) / 3.0
     return 1 + min(2, int((value - lo) / third))
@@ -390,14 +392,14 @@ def main():
     # (e.g. a sac-bunt narrative that also matched "fielders choice" text used to
     # get mislabeled "FC" instead of "SAC") — those need their at_bats corrected
     # in place, not silently left stale.
-    existing_pls = sb_get_all("pitch_location_stats?select=player_id,game_date")
+    existing_pls = sb_get_all("pitch_location_stats?select=id,player_id,game_date,zone_counts")
     existing_gs = sb_get_all("game_stats?select=id,player_id,game_date,at_bats")
-    existing_pls_keys = {(r["player_id"], r["game_date"]) for r in existing_pls}
+    existing_pls_by_key = {(r["player_id"], r["game_date"]): r for r in existing_pls}
     existing_gs_by_key = {(r["player_id"], r["game_date"]): r for r in existing_gs}
 
     box_score_files = sorted(glob.glob(str(HERE / "box_scores" / "*.json")))
 
-    total_pls, total_gs, total_skipped_pls, total_skipped_gs, total_updated_gs = 0, 0, 0, 0, 0
+    total_pls, total_gs, total_skipped_pls, total_skipped_gs, total_updated_gs, total_updated_pls = 0, 0, 0, 0, 0, 0
     all_unresolved = set()
     games_processed = 0
 
@@ -410,15 +412,24 @@ def main():
 
         for row in result["pitch_location_rows"]:
             key = (row["player_id"], row["game_date"])
-            if key in existing_pls_keys:
+            existing = existing_pls_by_key.get(key)
+            if existing is None:
+                total_pls += 1
+                if commit:
+                    status, res = sb_request("POST", "pitch_location_stats", body=row)
+                    if status >= 300:
+                        print(f"  FAILED pitch_location_stats insert {row['player_id']} {row['game_date']}: {res}")
+            elif [int(v) for v in existing["zone_counts"]] != row["zone_counts"]:
+                total_updated_pls += 1
+                if commit:
+                    status, res = sb_request(
+                        "PATCH", f"pitch_location_stats?id=eq.{existing['id']}",
+                        body={"zone_counts": row["zone_counts"]},
+                    )
+                    if status >= 300:
+                        print(f"  FAILED pitch_location_stats update {row['player_id']} {row['game_date']}: {res}")
+            else:
                 total_skipped_pls += 1
-                continue
-            existing_pls_keys.add(key)
-            total_pls += 1
-            if commit:
-                status, res = sb_request("POST", "pitch_location_stats", body=row)
-                if status >= 300:
-                    print(f"  FAILED pitch_location_stats {row['player_id']} {row['game_date']}: {res}")
 
         for row in result["game_stats_rows"]:
             key = (row["player_id"], row["game_date"])
@@ -442,7 +453,7 @@ def main():
                 total_skipped_gs += 1
 
     print(f"games processed: {games_processed}/{len(box_score_files)}")
-    print(f"pitch_location_stats rows: {total_pls} new, {total_skipped_pls} skipped (already present)")
+    print(f"pitch_location_stats rows: {total_pls} new, {total_updated_pls} updated (zone corrected), {total_skipped_pls} unchanged")
     print(f"game_stats rows: {total_gs} new, {total_updated_gs} updated (corrected classification), {total_skipped_gs} unchanged")
     print(f"unresolved batter cpb ids (no matching team+uniform in Supabase): {len(all_unresolved)}")
     if not commit:
