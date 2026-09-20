@@ -18,7 +18,7 @@ export function trueAtBats(atBats: AtBat[]): number {
 }
 
 // ── Faced / thrown pitches heat-map (Supabase pitch_location_stats) ─────────
-export function PitchZoneHeatMap({ stats, isPitcher }: { stats: PitchLocationStat[]; isPitcher: boolean }) {
+export function PitchZoneHeatMap({ stats, isPitcher, prominentLabels = false }: { stats: PitchLocationStat[]; isPitcher: boolean; prominentLabels?: boolean }) {
   if (stats.length === 0) {
     return <div className="text-center text-gray-400 py-8">暂无投球位置数据</div>;
   }
@@ -29,7 +29,10 @@ export function PitchZoneHeatMap({ stats, isPitcher }: { stats: PitchLocationSta
     grandTotal += s.zoneCounts.reduce((a, b) => a + b, 0);
   }
   const maxCount = Math.max(...totals, 1);
-  const colLabels = isPitcher ? ["外", "", "", "", "内"] : ["内", "", "", "", "外"];
+  const colLabels = prominentLabels
+    ? (isPitcher ? ["外角", "", "", "", "内角"] : ["内角", "", "", "", "外角"])
+    : (isPitcher ? ["外", "", "", "", "内"] : ["内", "", "", "", "外"]);
+  const axisLabelClass = prominentLabels ? "text-sm font-semibold text-slate-100" : "text-xs text-gray-400";
   const rowLabels = ["高", "", "", "", "低"];
   const perspectiveLabel = isPitcher ? "← 外角　　　内角 →（投手视角）" : "← 内角　　　外角 →（捕手视角）";
 
@@ -38,7 +41,7 @@ export function PitchZoneHeatMap({ stats, isPitcher }: { stats: PitchLocationSta
       <div className="flex items-start gap-4">
         <div className="flex flex-col justify-around" style={{ height: 250 }}>
           {rowLabels.map((l, i) => (
-            <span key={i} className="text-xs text-gray-400 w-4 text-right">{l}</span>
+            <span key={i} className={`${axisLabelClass} ${prominentLabels ? "w-5" : "w-4"} text-right`}>{l}</span>
           ))}
         </div>
         <div>
@@ -65,10 +68,10 @@ export function PitchZoneHeatMap({ stats, isPitcher }: { stats: PitchLocationSta
           </div>
           <div className="flex mt-1" style={{ width: 250 }}>
             {colLabels.map((l, i) => (
-              <span key={i} className="text-xs text-gray-400 text-center" style={{ width: 50 }}>{l}</span>
+              <span key={i} className={`${axisLabelClass} text-center`} style={{ width: 50 }}>{l}</span>
             ))}
           </div>
-          <div className="text-center text-xs text-gray-500 mt-1">{perspectiveLabel}</div>
+          <div className={`text-center text-xs mt-1 ${prominentLabels ? "text-slate-300" : "text-gray-500"}`}>{perspectiveLabel}</div>
         </div>
       </div>
       <div className="mt-3 text-xs text-gray-500">
@@ -134,7 +137,7 @@ export function FirstPitchStrikeGauge({ allAtBats }: { allAtBats: AtBat[] }) {
 }
 
 // ── Hit Zone Heat-Map ────────────────────────────────────────────────────────
-export function HitZoneHeatMap({ gameStats, isPitcher }: { gameStats: GameStat[]; isPitcher: boolean }) {
+export function HitZoneHeatMap({ gameStats, isPitcher, prominentLabels = false }: { gameStats: GameStat[]; isPitcher: boolean; prominentLabels?: boolean }) {
   const zoneHits   = Array(25).fill(0);
   const zoneTotals = Array(25).fill(0);
 
@@ -157,7 +160,10 @@ export function HitZoneHeatMap({ gameStats, isPitcher }: { gameStats: GameStat[]
 
   const hitRates = zoneTotals.map((t, i) => (t > 0 ? zoneHits[i] / t : 0));
   const maxRate  = Math.max(...hitRates, 0.01);
-  const colLabels = isPitcher ? ["外", "", "", "", "内"] : ["内", "", "", "", "外"];
+  const colLabels = prominentLabels
+    ? (isPitcher ? ["外角", "", "", "", "内角"] : ["内角", "", "", "", "外角"])
+    : (isPitcher ? ["外", "", "", "", "内"] : ["内", "", "", "", "外"]);
+  const axisLabelClass = prominentLabels ? "text-sm font-semibold text-slate-100" : "text-xs text-gray-400";
   const rowLabels = ["高", "", "", "", "低"];
   const perspectiveLabel = isPitcher ? "← 外角　　　内角 →（投手视角）" : "← 内角　　　外角 →（捕手视角）";
 
@@ -166,7 +172,7 @@ export function HitZoneHeatMap({ gameStats, isPitcher }: { gameStats: GameStat[]
       <div className="flex items-start gap-4">
         <div className="flex flex-col justify-around" style={{ height: 250 }}>
           {rowLabels.map((l, i) => (
-            <span key={i} className="text-xs text-gray-400 w-4 text-right">{l}</span>
+            <span key={i} className={`${axisLabelClass} ${prominentLabels ? "w-5" : "w-4"} text-right`}>{l}</span>
           ))}
         </div>
         <div>
@@ -201,10 +207,10 @@ export function HitZoneHeatMap({ gameStats, isPitcher }: { gameStats: GameStat[]
           </div>
           <div className="flex mt-1" style={{ width: 250 }}>
             {colLabels.map((l, i) => (
-              <span key={i} className="text-xs text-gray-400 text-center" style={{ width: 50 }}>{l}</span>
+              <span key={i} className={`${axisLabelClass} text-center`} style={{ width: 50 }}>{l}</span>
             ))}
           </div>
-          <div className="text-center text-xs text-gray-500 mt-1">{perspectiveLabel}</div>
+          <div className={`text-center text-xs mt-1 ${prominentLabels ? "text-slate-300" : "text-gray-500"}`}>{perspectiveLabel}</div>
         </div>
       </div>
       <div className="mt-3 text-xs text-gray-500">颜色越深 = 该区安打率越高</div>
