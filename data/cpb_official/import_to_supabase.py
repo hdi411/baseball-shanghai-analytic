@@ -38,6 +38,7 @@ Usage:
 """
 import glob
 import json
+import os
 import re
 import sys
 import urllib.error
@@ -54,12 +55,17 @@ LOCATED_TYPES = {"called_strike", "swinging_strike", "foul", "in_play"}
 
 def load_env():
     env = {}
-    for line in ENV_FILE.read_text().splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        k, v = line.split("=", 1)
-        env[k] = v
+    if ENV_FILE.exists():
+        for line in ENV_FILE.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            k, v = line.split("=", 1)
+            env[k] = v
+    # real environment variables win — that's how the GitHub Actions job supplies them
+    for k in ("NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY"):
+        if os.environ.get(k):
+            env[k] = os.environ[k]
     return env
 
 

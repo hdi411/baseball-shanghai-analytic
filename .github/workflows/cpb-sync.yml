@@ -1,0 +1,36 @@
+name: CPB daily data sync
+
+# Fetch newly finished CPB games from cpbofficial.com and sync them into Supabase.
+# 15:00 UTC = 23:00 Shanghai, after the day's games are done. Also runnable by hand
+# from the Actions tab ("Run workflow").
+on:
+  schedule:
+    - cron: "0 15 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cpb-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # public values: the anon key is RLS-protected and already ships in the site's client bundle
+      NEXT_PUBLIC_SUPABASE_URL: https://hvginpxpdmcfufnaxpfr.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2Z2lucHhwZG1jZnVmbmF4cGZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMjMzNDksImV4cCI6MjEwMzg5OTM0OX0.1ayWHcxGT-EB5V-2alUS5-WZSpeBp51rIyD7xJPMRwk
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch newly completed games
+        working-directory: data/cpb_official
+        run: python fetch_official.py
+      - name: Import into Supabase (creates new players, upserts stats)
+        working-directory: data/cpb_official
+        run: python import_to_supabase.py --commit
