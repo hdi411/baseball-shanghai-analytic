@@ -26,6 +26,12 @@ sometimes set. Real classification has to come from `narrative` text for
 mid-at-bat pitches, and from outcome flags (bb/hbp/strikeout/h/double/
 triple/homerun) for the at-bat-ending pitch (marked pa==1).
 
+New players: anyone who has play-by-play activity but no roster row (matched by
+team + jersey number) is created automatically before importing — Chinese name
+from the cpb-match-visualizer API when available, else the English name;
+position and bats/throws from the official team roster page. See
+create_missing_players() for the safety limits.
+
 Usage:
   python3 import_to_supabase.py            # dry run, prints a summary, writes nothing
   python3 import_to_supabase.py --commit   # actually writes to Supabase
@@ -36,6 +42,7 @@ import re
 import sys
 import urllib.error
 import urllib.request
+from html.parser import HTMLParser
 from pathlib import Path
 
 HERE = Path(__file__).parent
@@ -230,6 +237,207 @@ def load_supabase_refs():
     return code_to_team_id, team_number_to_player, team_id_to_name, position_by_player
 
 
+# ── auto-create players that are missing from the roster ─────────────────────
+
+OFFICIAL_BASE = "https://www.cpbofficial.com/zh/events/chinese-professional-baseball-summer-game-2026"
+FRIEND_BASE = "https://cpb-match-visualizer.onrender.com/static_games"
+POSITIONS = ["P", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH", "OF", "INF"]
+# Guard against a bad scrape making *everyone* look missing and flooding the roster.
+MAX_AUTO_CREATE = 30
+MAX_FRIEND_DOWNLOADS = 15
+CJK = re.compile(r"[\u4e00-\u9fff]+")
+
+
+def http_get(url, timeout=60):
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read().decode("utf-8")
+
+
+class _TableRows(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.rows, self._cur, self._cell = [], None, None
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "tr":
+            self._cur = []
+        elif tag in ("td", "th") and self._cur is not None:
+            self._cell = ""
+
+    def handle_data(self, data):
+        if self._cell is not None:
+            self._cell += data
+
+    def handle_endtag(self, tag):
+        if tag in ("td", "th") and self._cur is not None and self._cell is not None:
+            self._cur.append(" ".join(self._cell.split()))
+            self._cell = None
+        elif tag == "tr" and self._cur is not None:
+            if self._cur:
+                self.rows.append(self._cur)
+            self._cur = None
+
+
+_roster_cache = {}
+
+
+def official_roster(cpb_team_id):
+    """{jersey number: (positions text, 'B/T')} from the official team page, {} on failure."""
+    if cpb_team_id not in _roster_cache:
+        out = {}
+        try:
+            parser = _TableRows()
+            parser.feed(http_get(f"{OFFICIAL_BASE}/teams/{cpb_team_id}"))
+            for r in parser.rows:
+                if len(r) >= 5 and r[0].isdigit() and re.fullmatch(r"[LRS]/[LRS]", r[3]):
+                    out[int(r[0])] = (r[2], r[3])
+        except Exception as e:
+            print(f"  (couldn't read official roster for team {cpb_team_id}: {e})")
+        _roster_cache[cpb_team_id] = out
+    return _roster_cache[cpb_team_id]
+
+
+def map_position(text):
+    """Roster text like '1B/2B/3B' or 'PH/DH' -> one value from the app's position list."""
+    toks = [t for t in re.split(r"[/,\s]+", text or "") if t]
+    for t in toks:
+        if t in POSITIONS:
+            return t
+    return "DH" if "PH" in toks else "OF"
+
+
+def english_name(first, last):
+    # a few official names embed the Chinese name, e.g. firstname "Yang - 王洋"
+    for part in (first or "", last or ""):
+        m = CJK.search(part)
+        if m:
+            return m.group(0)
+    return f"{first or ''} {last or ''}".strip()
+
+
+def friend_zh_names(wanted):
+    """wanted: {cpb player id: [official game ids, newest first]} -> {cpb player id: Chinese name}.
+    Best effort — the friend's site lags real games, and may be unreachable."""
+    found = {}
+    try:
+        catalog = json.loads(http_get(f"{FRIEND_BASE}/catalog.json", 90))
+        games = catalog if isinstance(catalog, list) else catalog.get("games", [])
+        code_by_game = {g["game_id"]: g["game_code"] for g in games}
+    except Exception as e:
+        print(f"  (couldn't reach the Chinese-name source: {e}; using English names)")
+        return found
+    cache, downloads = {}, 0
+    for pid, game_ids in wanted.items():
+        for gid in game_ids:
+            code = code_by_game.get(gid)
+            if not code:
+                continue
+            if code not in cache:
+                if downloads >= MAX_FRIEND_DOWNLOADS:
+                    break
+                downloads += 1
+                try:
+                    plays = json.loads(http_get(f"{FRIEND_BASE}/{code}.json", 120)).get("plays", [])
+                except Exception:
+                    plays = []
+                cache[code] = {}
+                for pl in plays:
+                    for role in ("batter", "pitcher"):
+                        b = pl.get(role) or {}
+                        if b.get("id") and b.get("name_zh"):
+                            cache[code][b["id"]] = b["name_zh"]
+            if pid in cache[code]:
+                found[pid] = cache[code][pid]
+                break
+    return found
+
+
+def find_missing_players(paths, code_to_team_id, team_number_to_player):
+    """Players with real play-by-play activity but no roster row.
+    -> {(team_id, jersey str): info}"""
+    missing = {}
+    for path in paths:
+        data = json.loads(Path(path).read_text())
+        gd = data.get("gameData")
+        plays = (data.get("gamePlays") or {}).get("all")
+        if not gd or not plays:
+            continue
+        active = set()
+        for row in iter_plays_in_order(plays):
+            if row.get("pitch_pitches") == 1:
+                active.add(row["batterid"])
+                active.add(row["pitcherid"])
+        box = data.get("boxScore") or {}
+        for cpb_team_id, code in ((gd["homeid"], gd["homeioc"]), (gd["awayid"], gd["awayioc"])):
+            if code not in code_to_team_id:
+                continue
+            team_id = code_to_team_id[code]
+            for rows in (box.get(str(cpb_team_id)) or box.get(cpb_team_id) or {}).values():
+                for r in rows:
+                    if r.get("playerid") not in active or "uniform" not in r:
+                        continue
+                    key = (team_id, str(int(r["uniform"])))
+                    if key in team_number_to_player:
+                        continue
+                    e = missing.setdefault(key, {
+                        "code": code, "cpb_team_id": cpb_team_id, "cpb_id": r["playerid"],
+                        "number": key[1], "box_pos": r.get("pos"),
+                        "en": english_name(r.get("firstname"), r.get("lastname")), "games": set(),
+                    })
+                    e["games"].add((gd["start"], gd["id"]))
+    return missing
+
+
+def create_missing_players(paths, refs, commit):
+    """Create roster rows for newly seen players. Returns refs (reloaded if anything was created)."""
+    code_to_team_id, team_number_to_player, _team_names, _positions = refs
+    missing = find_missing_players(paths, code_to_team_id, team_number_to_player)
+    if not missing:
+        return refs
+
+    zh = friend_zh_names({
+        e["cpb_id"]: [gid for _d, gid in sorted(e["games"], reverse=True)] for e in missing.values()
+    })
+    plan = []
+    for (team_id, number), e in sorted(missing.items(), key=lambda kv: (kv[1]["code"], int(kv[0][1]))):
+        pos_text, bt = official_roster(e["cpb_team_id"]).get(int(number), (e["box_pos"], None))
+        bats, throws = bt.split("/") if bt else (None, None)
+        plan.append({
+            "team_id": team_id, "code": e["code"], "number": number,
+            "name": zh.get(e["cpb_id"]) or e["en"], "zh": bool(CJK.search(zh.get(e["cpb_id"]) or e["en"])),
+            "position": map_position(pos_text), "bats": bats, "throws": throws,
+        })
+
+    if len(plan) > MAX_AUTO_CREATE:
+        print(f"\n{len(plan)} players look missing at once — that's a scraping problem, not new signings; creating none.")
+        return refs
+    verb = "creating" if commit else "would create"
+    print(f"\nNew players with no roster row — {verb} {len(plan)}:")
+    for r in plan:
+        print(f"  + {r['code']} #{r['number']:<3} {r['name']}  [{r['position']}, bats {r['bats']}/throws {r['throws']}]"
+              + ("" if r["zh"] else "  (English name — no Chinese name found)"))
+    if not commit:
+        return refs
+
+    created = 0
+    for r in plan:
+        # never trust the in-memory roster alone: re-check the database right before inserting
+        status, existing = sb_request("GET", f"players?select=id&team_id=eq.{r['team_id']}&number=eq.{r['number']}")
+        if status == 200 and existing:
+            continue
+        status, res = sb_request("POST", "players", extra_headers={"Prefer": "return=minimal"}, body={
+            "team_id": r["team_id"], "name": r["name"], "number": r["number"],
+            "position": r["position"], "throws": r["throws"], "bats": r["bats"],
+        })
+        if status >= 300:
+            print(f"  FAILED creating {r['code']} #{r['number']} {r['name']}: {res}")
+        else:
+            created += 1
+    print(f"  created {created} player(s)\n")
+    return load_supabase_refs() if created else refs
+
+
 # ── per-game processing ──────────────────────────────────────────────────────
 
 def build_playerid_to_uniform(box_score, cpb_team_id):
@@ -383,7 +591,10 @@ def process_game(path, code_to_team_id, team_number_to_player, team_id_to_name, 
 
 def main():
     commit = "--commit" in sys.argv
-    code_to_team_id, team_number_to_player, team_id_to_name, position_by_player = load_supabase_refs()
+    refs = load_supabase_refs()
+    box_score_files = sorted(glob.glob(str(HERE / "box_scores" / "*.json")))
+    refs = create_missing_players(box_score_files, refs, commit)
+    code_to_team_id, team_number_to_player, team_id_to_name, position_by_player = refs
 
     # existing (player_id, game_date) pairs already in the DB — never duplicate.
     # pitch_location_stats is insert-only (its content only depends on zone_index /
@@ -396,8 +607,6 @@ def main():
     existing_gs = sb_get_all("game_stats?select=id,player_id,game_date,at_bats")
     existing_pls_by_key = {(r["player_id"], r["game_date"]): r for r in existing_pls}
     existing_gs_by_key = {(r["player_id"], r["game_date"]): r for r in existing_gs}
-
-    box_score_files = sorted(glob.glob(str(HERE / "box_scores" / "*.json")))
 
     total_pls, total_gs, total_skipped_pls, total_skipped_gs, total_updated_gs, total_updated_pls = 0, 0, 0, 0, 0, 0
     all_unresolved = set()
