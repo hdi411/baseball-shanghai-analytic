@@ -8,7 +8,8 @@ import { getTeams } from "@/lib/store";
 import type { Team, Player } from "@/lib/types";
 import { HitZoneHeatMap, PitchZoneHeatMap, trueAtBats } from "@/components/PlayerCharts";
 
-const CARD_BG = "#1e293b";
+const DARK_CARD_BG = "#1e293b";
+const PRINT_CARD_BG = "#ffffff";
 
 function hasHitZoneData(p: Player) {
   return p.gameStats.some((gs) => gs.atBats.some((ab) => ab.pitchZone !== undefined));
@@ -47,10 +48,14 @@ const PAGE_H = 210;
 const PAGE_MARGIN = 10;
 const PAGE_BG: [number, number, number] = [15, 23, 42];
 
-function addCardPage(pdf: jsPDF, dataUrl: string, isFirst: boolean) {
+function addCardPage(pdf: jsPDF, dataUrl: string, isFirst: boolean, print: boolean) {
   if (!isFirst) pdf.addPage("a4", "landscape");
-  pdf.setFillColor(...PAGE_BG);
-  pdf.rect(0, 0, PAGE_W, PAGE_H, "F");
+  if (!print) {
+    // screen version: dark page to match the card. The print version leaves the page
+    // white — a dark page would be a solid black sheet on a mono printer.
+    pdf.setFillColor(...PAGE_BG);
+    pdf.rect(0, 0, PAGE_W, PAGE_H, "F");
+  }
   const img = pdf.getImageProperties(dataUrl);
   let w = PAGE_W - PAGE_MARGIN * 2;
   let h = (w * img.height) / img.width;
@@ -66,12 +71,15 @@ function addCardPage(pdf: jsPDF, dataUrl: string, isFirst: boolean) {
 // The exported image is exactly this node, so anything not meant to be in the
 // picture (buttons, checkboxes) has to live outside it.
 function PlayerHeatCard({
-  player, team, setRef,
+  player, team, print, setRef,
 }: {
   player: Player;
   team: Team;
+  print: boolean;
   setRef: (el: HTMLDivElement | null) => void;
 }) {
+  const ink = print ? { color: "#111111" } : undefined;
+  const inkMid = print ? { color: "#333333" } : undefined;
   const isPitcher = player.position === "P";
   const atBats = player.gameStats.flatMap((g) => g.atBats);
   const hits = atBats.filter((ab) => ["1B", "2B", "3B", "HR"].includes(ab.result)).length;
@@ -79,27 +87,30 @@ function PlayerHeatCard({
 
   const hitBlock = hasHitZoneData(player) && (
     <div key="hit">
-      <div className="text-sm font-semibold text-white mb-2">打击热区 Hit Zone</div>
-      <HitZoneHeatMap gameStats={player.gameStats} isPitcher={isPitcher} prominentLabels />
+      <div className="text-sm font-semibold text-white mb-2" style={ink}>打击热区 Hit Zone</div>
+      <HitZoneHeatMap gameStats={player.gameStats} isPitcher={isPitcher} prominentLabels print={print} />
     </div>
   );
   const pitchBlock = hasPitchData(player) && (
     <div key="pitch">
-      <div className="text-sm font-semibold text-white mb-2">
+      <div className="text-sm font-semibold text-white mb-2" style={ink}>
         {isPitcher ? "投球位置 Pitch Locations" : "面对来球位置 Faced Pitches"}
       </div>
-      <PitchZoneHeatMap stats={player.pitchLocationStats} isPitcher={isPitcher} prominentLabels />
+      <PitchZoneHeatMap stats={player.pitchLocationStats} isPitcher={isPitcher} prominentLabels print={print} />
     </div>
   );
 
   return (
-    <div ref={setRef} style={{ width: 720, background: CARD_BG, padding: 20, borderRadius: 12 }}>
+    <div ref={setRef} style={{
+      width: 720, background: print ? PRINT_CARD_BG : DARK_CARD_BG, padding: 20, borderRadius: 12,
+      ...(print ? { border: "1px solid #999999" } : {}),
+    }}>
       <div className="flex items-baseline gap-3 flex-wrap mb-4">
-        <span className="text-lg font-bold text-white">#{player.number} {player.name || "?"}</span>
-        <span className="text-sm text-slate-300">{player.position}</span>
-        <span className="text-sm text-slate-400">{team.name}</span>
+        <span className="text-lg font-bold text-white" style={ink}>#{player.number} {player.name || "?"}</span>
+        <span className="text-sm text-slate-300" style={inkMid}>{player.position}</span>
+        <span className="text-sm text-slate-400" style={inkMid}>{team.name}</span>
         {trueAB > 0 && (
-          <span className="text-sm text-slate-400 ml-auto">
+          <span className="text-sm text-slate-400 ml-auto" style={inkMid}>
             打击率 {(hits / trueAB).toFixed(3)}（{hits}/{trueAB}）
           </span>
         )}
@@ -118,6 +129,7 @@ export default function HeatmapExportPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState<string | null>(null);
   const [progress, setProgress] = useState("");
+  const [printMode, setPrintMode] = useState(true); // default: black & white, printer-friendly
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
@@ -155,7 +167,7 @@ export default function HeatmapExportPage() {
   async function renderCard(playerId: string): Promise<string> {
     const node = cardRefs.current[playerId];
     if (!node) throw new Error("card not rendered");
-    return toPng(node, { pixelRatio: 3, backgroundColor: CARD_BG, cacheBust: true });
+    return toPng(node, { pixelRatio: 3, backgroundColor: printMode ? PRINT_CARD_BG : DARK_CARD_BG, cacheBust: true });
   }
 
   async function downloadOne(p: Player) {
@@ -163,7 +175,7 @@ export default function HeatmapExportPage() {
     setBusy(p.id);
     try {
       const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4", compress: true });
-      addCardPage(pdf, await renderCard(p.id), true);
+      addCardPage(pdf, await renderCard(p.id), true, printMode);
       triggerDownload(pdf.output("blob"), fileNameFor(team, p));
     } catch (e) {
       console.error(e);
@@ -180,7 +192,7 @@ export default function HeatmapExportPage() {
       const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4", compress: true });
       for (let i = 0; i < selectedPlayers.length; i++) {
         setProgress(`${i + 1}/${selectedPlayers.length}`);
-        addCardPage(pdf, await renderCard(selectedPlayers[i].id), i === 0);
+        addCardPage(pdf, await renderCard(selectedPlayers[i].id), i === 0, printMode);
       }
       triggerDownload(pdf.output("blob"), `${safeName(team.shortName ?? team.name)}_热区图.pdf`);
     } catch (e) {
@@ -223,8 +235,18 @@ export default function HeatmapExportPage() {
                 <span className="text-xs ml-2" style={{ color: "#64748b" }}>
                   已选 {selectedPlayers.length} / {players.length}
                 </span>
+                <div className="ml-auto flex rounded-lg overflow-hidden" style={{ border: "1px solid #334155" }}>
+                  <button className="text-sm px-3 py-2" onClick={() => setPrintMode(true)}
+                    style={{ background: printMode ? "#22c55e" : "transparent", color: printMode ? "#0f172a" : "#94a3b8", fontWeight: 500 }}>
+                    黑白打印版
+                  </button>
+                  <button className="text-sm px-3 py-2" onClick={() => setPrintMode(false)}
+                    style={{ background: !printMode ? "#22c55e" : "transparent", color: !printMode ? "#0f172a" : "#94a3b8", fontWeight: 500 }}>
+                    彩色屏幕版
+                  </button>
+                </div>
                 <button
-                  className="btn btn-primary text-sm ml-auto"
+                  className="btn btn-primary text-sm"
                   disabled={selectedPlayers.length === 0 || busy !== null}
                   style={{ opacity: selectedPlayers.length === 0 || busy !== null ? 0.5 : 1 }}
                   onClick={downloadAll}
@@ -260,7 +282,7 @@ export default function HeatmapExportPage() {
           <div className="flex flex-wrap gap-6">
             {selectedPlayers.map((p) => (
               <div key={p.id}>
-                <PlayerHeatCard player={p} team={team} setRef={(el) => { cardRefs.current[p.id] = el; }} />
+                <PlayerHeatCard player={p} team={team} print={printMode} setRef={(el) => { cardRefs.current[p.id] = el; }} />
                 <div className="mt-2 text-right">
                   <button className="btn btn-ghost text-sm" disabled={busy !== null} onClick={() => downloadOne(p)}>
                     {busy === p.id ? "导出中..." : "下载 PDF"}

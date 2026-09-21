@@ -17,8 +17,28 @@ export function trueAtBats(atBats: AtBat[]): number {
   return atBats.filter((ab) => !NON_AB_RESULTS.has(ab.result)).length;
 }
 
+// ── Black & white print mode ────────────────────────────────────────────────
+// Shading is grey (darker = higher) but capped at a mid-grey, so the numbers can
+// always be plain black text — flipping to white text on dark cells leaves an
+// unreadable mid-tone band on a mono printer's halftone. The middle 3x3 — the
+// actual strike zone — gets a thick black frame so it still reads without colour.
+const PRINT_INK = "#111111";
+const PRINT_GRID = "#999999";
+const PRINT_SUB = "#222222";
+const printShade = (intensity: number, has: boolean) =>
+  has ? `rgba(0,0,0,${(0.05 + 0.37 * intensity).toFixed(3)})` : "#ffffff";
+
+function StrikeZoneFrame() {
+  return (
+    <div style={{
+      position: "absolute", left: 50, top: 50, width: 150, height: 150,
+      border: "3px solid #000", boxSizing: "border-box", pointerEvents: "none",
+    }} />
+  );
+}
+
 // ── Faced / thrown pitches heat-map (Supabase pitch_location_stats) ─────────
-export function PitchZoneHeatMap({ stats, isPitcher, prominentLabels = false }: { stats: PitchLocationStat[]; isPitcher: boolean; prominentLabels?: boolean }) {
+export function PitchZoneHeatMap({ stats, isPitcher, prominentLabels = false, print = false }: { stats: PitchLocationStat[]; isPitcher: boolean; prominentLabels?: boolean; print?: boolean }) {
   if (stats.length === 0) {
     return <div className="text-center text-gray-400 py-8">暂无投球位置数据</div>;
   }
@@ -29,10 +49,12 @@ export function PitchZoneHeatMap({ stats, isPitcher, prominentLabels = false }: 
     grandTotal += s.zoneCounts.reduce((a, b) => a + b, 0);
   }
   const maxCount = Math.max(...totals, 1);
-  const colLabels = prominentLabels
+  const prominent = prominentLabels || print;
+  const colLabels = prominent
     ? (isPitcher ? ["外角", "", "", "", "内角"] : ["内角", "", "", "", "外角"])
     : (isPitcher ? ["外", "", "", "", "内"] : ["内", "", "", "", "外"]);
-  const axisLabelClass = prominentLabels ? "text-sm font-semibold text-slate-100" : "text-xs text-gray-400";
+  const axisLabelClass = print ? "text-sm font-bold" : prominent ? "text-sm font-semibold text-slate-100" : "text-xs text-gray-400";
+  const axisStyle = print ? { color: PRINT_INK } : undefined;
   const rowLabels = ["高", "", "", "", "低"];
   const perspectiveLabel = isPitcher ? "← 外角　　　内角 →（投手视角）" : "← 内角　　　外角 →（捕手视角）";
 
@@ -41,12 +63,12 @@ export function PitchZoneHeatMap({ stats, isPitcher, prominentLabels = false }: 
       <div className="flex items-start gap-4">
         <div className="flex flex-col justify-around" style={{ height: 250 }}>
           {rowLabels.map((l, i) => (
-            <span key={i} className={`${axisLabelClass} ${prominentLabels ? "w-5" : "w-4"} text-right`}>{l}</span>
+            <span key={i} className={`${axisLabelClass} ${prominent ? "w-5" : "w-4"} text-right`} style={axisStyle}>{l}</span>
           ))}
         </div>
         <div>
-          <div className="grid border border-gray-600"
-            style={{ gridTemplateColumns: "repeat(5, 50px)", gridTemplateRows: "repeat(5, 50px)" }}>
+          <div className={`grid border ${print ? "border-2 relative" : "border-gray-600"}`}
+            style={{ gridTemplateColumns: "repeat(5, 50px)", gridTemplateRows: "repeat(5, 50px)", ...(print ? { borderColor: PRINT_INK } : {}) }}>
             {Array.from({ length: 25 }, (_, displayIdx) => {
               const row = Math.floor(displayIdx / 5);
               const col = displayIdx % 5;
@@ -56,26 +78,32 @@ export function PitchZoneHeatMap({ stats, isPitcher, prominentLabels = false }: 
               const intensity = count / maxCount;
               return (
                 <div key={displayIdx}
-                  style={{ backgroundColor: `rgba(34,197,94,${Math.max(0.05, intensity)})` }}
-                  className="border border-gray-700 flex flex-col items-center justify-center">
-                  <span className="text-white text-xs font-bold">{count}</span>
-                  <span className="text-gray-300 text-[10px]">
+                  style={print
+                    ? { backgroundColor: printShade(intensity, count > 0), borderColor: PRINT_GRID }
+                    : { backgroundColor: `rgba(34,197,94,${Math.max(0.05, intensity)})` }}
+                  className={`border ${print ? "" : "border-gray-700"} flex flex-col items-center justify-center`}>
+                  <span className={`text-xs font-bold ${print ? "" : "text-white"}`}
+                    style={print ? { color: PRINT_INK } : undefined}>{count}</span>
+                  <span className={`text-[10px] ${print ? "" : "text-gray-300"}`}
+                    style={print ? { color: PRINT_SUB } : undefined}>
                     {grandTotal > 0 ? (prob * 100).toFixed(1) + "%" : "0%"}
                   </span>
                 </div>
               );
             })}
+            {print && <StrikeZoneFrame />}
           </div>
           <div className="flex mt-1" style={{ width: 250 }}>
             {colLabels.map((l, i) => (
-              <span key={i} className={`${axisLabelClass} text-center`} style={{ width: 50 }}>{l}</span>
+              <span key={i} className={`${axisLabelClass} text-center`} style={{ width: 50, ...axisStyle }}>{l}</span>
             ))}
           </div>
-          <div className={`text-center text-xs mt-1 ${prominentLabels ? "text-slate-300" : "text-gray-500"}`}>{perspectiveLabel}</div>
+          <div className={`text-center text-xs mt-1 ${print ? "" : prominent ? "text-slate-300" : "text-gray-500"}`} style={print ? { color: "#333333" } : undefined}>{perspectiveLabel}</div>
         </div>
       </div>
-      <div className="mt-3 text-xs text-gray-500">
+      <div className="mt-3 text-xs text-gray-500" style={print ? { color: "#333333" } : undefined}>
         总投球数：{grandTotal}　来源场次：{stats.length}
+        {print && <div className="mt-0.5">越深 = 球越多　粗黑框 = 好球带</div>}
       </div>
     </div>
   );
@@ -137,7 +165,7 @@ export function FirstPitchStrikeGauge({ allAtBats }: { allAtBats: AtBat[] }) {
 }
 
 // ── Hit Zone Heat-Map ────────────────────────────────────────────────────────
-export function HitZoneHeatMap({ gameStats, isPitcher, prominentLabels = false }: { gameStats: GameStat[]; isPitcher: boolean; prominentLabels?: boolean }) {
+export function HitZoneHeatMap({ gameStats, isPitcher, prominentLabels = false, print = false }: { gameStats: GameStat[]; isPitcher: boolean; prominentLabels?: boolean; print?: boolean }) {
   const zoneHits   = Array(25).fill(0);
   const zoneTotals = Array(25).fill(0);
 
@@ -160,10 +188,12 @@ export function HitZoneHeatMap({ gameStats, isPitcher, prominentLabels = false }
 
   const hitRates = zoneTotals.map((t, i) => (t > 0 ? zoneHits[i] / t : 0));
   const maxRate  = Math.max(...hitRates, 0.01);
-  const colLabels = prominentLabels
+  const prominent = prominentLabels || print;
+  const colLabels = prominent
     ? (isPitcher ? ["外角", "", "", "", "内角"] : ["内角", "", "", "", "外角"])
     : (isPitcher ? ["外", "", "", "", "内"] : ["内", "", "", "", "外"]);
-  const axisLabelClass = prominentLabels ? "text-sm font-semibold text-slate-100" : "text-xs text-gray-400";
+  const axisLabelClass = print ? "text-sm font-bold" : prominent ? "text-sm font-semibold text-slate-100" : "text-xs text-gray-400";
+  const axisStyle = print ? { color: PRINT_INK } : undefined;
   const rowLabels = ["高", "", "", "", "低"];
   const perspectiveLabel = isPitcher ? "← 外角　　　内角 →（投手视角）" : "← 内角　　　外角 →（捕手视角）";
 
@@ -172,12 +202,12 @@ export function HitZoneHeatMap({ gameStats, isPitcher, prominentLabels = false }
       <div className="flex items-start gap-4">
         <div className="flex flex-col justify-around" style={{ height: 250 }}>
           {rowLabels.map((l, i) => (
-            <span key={i} className={`${axisLabelClass} ${prominentLabels ? "w-5" : "w-4"} text-right`}>{l}</span>
+            <span key={i} className={`${axisLabelClass} ${prominent ? "w-5" : "w-4"} text-right`} style={axisStyle}>{l}</span>
           ))}
         </div>
         <div>
-          <div className="grid border border-gray-600"
-            style={{ gridTemplateColumns: "repeat(5, 50px)", gridTemplateRows: "repeat(5, 50px)" }}>
+          <div className={`grid border ${print ? "border-2 relative" : "border-gray-600"}`}
+            style={{ gridTemplateColumns: "repeat(5, 50px)", gridTemplateRows: "repeat(5, 50px)", ...(print ? { borderColor: PRINT_INK } : {}) }}>
             {Array.from({ length: 25 }, (_, displayIdx) => {
               const row = Math.floor(displayIdx / 5);
               const col = displayIdx % 5;
@@ -189,31 +219,39 @@ export function HitZoneHeatMap({ gameStats, isPitcher, prominentLabels = false }
               const alpha = total === 0 ? 0 : Math.max(0.07, intensity);
               return (
                 <div key={displayIdx}
-                  style={{ backgroundColor: `rgba(251,146,60,${alpha})` }}
-                  className="border border-gray-700 flex flex-col items-center justify-center">
+                  style={print
+                    ? { backgroundColor: printShade(intensity, total > 0), borderColor: PRINT_GRID }
+                    : { backgroundColor: `rgba(251,146,60,${alpha})` }}
+                  className={`border ${print ? "" : "border-gray-700"} flex flex-col items-center justify-center`}>
                   {total > 0 ? (
                     <>
-                      <span className="text-white text-xs font-bold">{hits}/{total}</span>
-                      <span className="text-gray-300 text-[10px]">
+                      <span className={`text-xs font-bold ${print ? "" : "text-white"}`}
+                        style={print ? { color: PRINT_INK } : undefined}>{hits}/{total}</span>
+                      <span className={`text-[10px] ${print ? "" : "text-gray-300"}`}
+                        style={print ? { color: PRINT_SUB } : undefined}>
                         {(rate * 100).toFixed(0)}%
                       </span>
                     </>
                   ) : (
-                    <span className="text-gray-600 text-xs">—</span>
+                    <span className={`text-xs ${print ? "" : "text-gray-600"}`}
+                      style={print ? { color: PRINT_GRID } : undefined}>—</span>
                   )}
                 </div>
               );
             })}
+            {print && <StrikeZoneFrame />}
           </div>
           <div className="flex mt-1" style={{ width: 250 }}>
             {colLabels.map((l, i) => (
-              <span key={i} className={`${axisLabelClass} text-center`} style={{ width: 50 }}>{l}</span>
+              <span key={i} className={`${axisLabelClass} text-center`} style={{ width: 50, ...axisStyle }}>{l}</span>
             ))}
           </div>
-          <div className={`text-center text-xs mt-1 ${prominentLabels ? "text-slate-300" : "text-gray-500"}`}>{perspectiveLabel}</div>
+          <div className={`text-center text-xs mt-1 ${print ? "" : prominent ? "text-slate-300" : "text-gray-500"}`} style={print ? { color: "#333333" } : undefined}>{perspectiveLabel}</div>
         </div>
       </div>
-      <div className="mt-3 text-xs text-gray-500">颜色越深 = 该区安打率越高</div>
+      <div className="mt-3 text-xs text-gray-500" style={print ? { color: "#333333" } : undefined}>
+        {print ? "越深 = 安打率越高　粗黑框 = 好球带" : "颜色越深 = 该区安打率越高"}
+      </div>
     </div>
   );
 }
