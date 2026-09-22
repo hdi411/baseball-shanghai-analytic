@@ -7,7 +7,7 @@ import { jsPDF } from "jspdf";
 import { getTeam, getTeamList } from "@/lib/store";
 import { englishPlayerName, englishTeamName } from "@/lib/englishNames";
 import type { Team, Player } from "@/lib/types";
-import { HitZoneHeatMap, PitchZoneHeatMap, PerspectiveToggle, filterByBats, trueAtBats } from "@/components/PlayerCharts";
+import { HitZoneHeatMap, PitchZoneHeatMap, PerspectiveToggle, BatsViewToggle, filterByBats, trueAtBats } from "@/components/PlayerCharts";
 
 const DARK_CARD_BG = "#1e293b";
 const PRINT_CARD_BG = "#ffffff";
@@ -90,12 +90,13 @@ function addCardPage(pdf: jsPDF, dataUrl: string, isFirst: boolean, print: boole
 // The exported image is exactly this node, so anything not meant to be in the
 // picture (buttons, checkboxes) has to live outside it.
 function PlayerHeatCard({
-  player, team, print, perspective, setRef,
+  player, team, print, perspective, batsView, setRef,
 }: {
   player: Player;
   team: Team;
   print: boolean;
   perspective: "pitcher" | "catcher" | null;
+  batsView: "all" | "split";
   setRef: (el: HTMLDivElement | null) => void;
 }) {
   const ink = print ? { color: "#111111" } : undefined;
@@ -116,7 +117,7 @@ function PlayerHeatCard({
   // of one filtered chart, so both are visible at once on the printed card. A count
   // reconciliation line accounts for every thrown pitch, including the few thrown to
   // switch hitters / unresolved batters that can't be put in either column.
-  const hasSplit = isPitcher && player.pitchLocationStats.some((s) => s.vsBats);
+  const hasSplit = isPitcher && batsView === "split" && player.pitchLocationStats.some((s) => s.vsBats);
   let pitchBlock: ReactNode = false;
   if (hasSplit) {
     const sum = (stats: typeof player.pitchLocationStats) =>
@@ -190,6 +191,8 @@ export default function HeatmapExportPage() {
   // null = auto per player (pitcher's own view for a pitcher, catcher's view otherwise);
   // set to one value to apply it to every exported card, regardless of position.
   const [perspective, setPerspective] = useState<"pitcher" | "catcher" | null>(null);
+  // pitchers with handedness data: one combined chart ("all") or vs-LHB/vs-RHB side by side ("split")
+  const [batsView, setBatsView] = useState<"all" | "split">("all");
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
@@ -311,6 +314,12 @@ export default function HeatmapExportPage() {
                 </span>
                 <span className="text-xs ml-auto" style={{ color: "#64748b" }}>视角</span>
                 <PerspectiveToggle value={perspective} onChange={setPerspective} />
+                {players.some((p) => p.position === "P" && p.pitchLocationStats.some((s) => s.vsBats)) && (
+                  <>
+                    <span className="text-xs" style={{ color: "#64748b" }}>对战</span>
+                    <BatsViewToggle value={batsView} onChange={setBatsView} />
+                  </>
+                )}
                 <div className="flex rounded-lg overflow-hidden" style={{ border: "1px solid #334155" }}>
                   <button className="text-sm px-3 py-2" onClick={() => setPrintMode(true)}
                     style={{ background: printMode ? "#22c55e" : "transparent", color: printMode ? "#0f172a" : "#94a3b8", fontWeight: 500 }}>
@@ -358,7 +367,7 @@ export default function HeatmapExportPage() {
           <div className="flex flex-wrap gap-6">
             {selectedPlayers.map((p) => (
               <div key={p.id}>
-                <PlayerHeatCard player={p} team={team} print={printMode} perspective={perspective} setRef={(el) => { cardRefs.current[p.id] = el; }} />
+                <PlayerHeatCard player={p} team={team} print={printMode} perspective={perspective} batsView={batsView} setRef={(el) => { cardRefs.current[p.id] = el; }} />
                 <div className="mt-2 text-right">
                   <button className="btn btn-ghost text-sm" disabled={busy !== null} onClick={() => downloadOne(p)}>
                     {busy === p.id ? "导出中..." : "下载 PDF"}

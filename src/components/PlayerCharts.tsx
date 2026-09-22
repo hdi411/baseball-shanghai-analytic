@@ -145,6 +145,36 @@ export function PerspectiveToggle({
   );
 }
 
+// ── Bats-split VIEW toggle (全部 / 左右打者) ───────────────────────────────────
+// Heatmap export page only: whether a pitcher's thrown-pitch chart shows one
+// combined heatmap ("全部") or the vs-LHB / vs-RHB pair side by side ("左右打者").
+export function BatsViewToggle({
+  value, onChange,
+}: {
+  value: "all" | "split";
+  onChange: (v: "all" | "split") => void;
+}) {
+  const opts: { key: "all" | "split"; label: string }[] = [
+    { key: "all", label: "全部" },
+    { key: "split", label: "左右打者" },
+  ];
+  return (
+    <div className="inline-flex rounded-lg overflow-hidden" style={{ border: "1px solid #334155" }}>
+      {opts.map((o) => (
+        <button key={o.key} type="button" onClick={() => onChange(o.key)}
+          className="text-sm px-3 py-1.5"
+          style={{
+            background: value === o.key ? "#22c55e" : "transparent",
+            color: value === o.key ? "#0f172a" : "#94a3b8",
+            fontWeight: 500,
+          }}>
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ── Bats-split toggle (全部 / 左打者 / 右打者) ─────────────────────────────────
 // Pitchers only: filters PitchZoneHeatMap's thrown-pitch stats down to pitches
 // thrown to left- or right-handed batters (see vs_bats in pitch_location_stats).
