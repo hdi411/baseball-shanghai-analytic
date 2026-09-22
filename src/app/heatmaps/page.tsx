@@ -102,6 +102,8 @@ function PlayerHeatCard({
   const ink = print ? { color: "#111111" } : undefined;
   const inkMid = print ? { color: "#333333" } : undefined;
   const isPitcher = player.position === "P";
+  // catcher's view mirrors differently for a left-handed batter (see PlayerCharts.tsx)
+  const ownBats: "L" | "R" | undefined = player.bats === "L" || player.bats === "R" ? player.bats : undefined;
   const atBats = player.gameStats.flatMap((g) => g.atBats);
   const hits = atBats.filter((ab) => ["1B", "2B", "3B", "HR"].includes(ab.result)).length;
   const trueAB = trueAtBats(atBats);
@@ -109,7 +111,7 @@ function PlayerHeatCard({
   const hitBlock = hasHitZoneData(player) && (
     <div key="hit">
       <div className="text-sm font-semibold text-white mb-2" style={ink}>打击热区 Hit Zone</div>
-      <HitZoneHeatMap gameStats={player.gameStats} isPitcher={isPitcher} perspective={perspective ?? undefined} prominentLabels print={print} />
+      <HitZoneHeatMap gameStats={player.gameStats} isPitcher={isPitcher} perspective={perspective ?? undefined} batterHand={ownBats} prominentLabels print={print} />
     </div>
   );
 
@@ -132,11 +134,11 @@ function PlayerHeatCard({
         <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
           <div>
             <div className="text-xs font-bold mb-1" style={ink}>对左打者 vs LHB</div>
-            <PitchZoneHeatMap stats={lStats} isPitcher perspective={perspective ?? undefined} prominentLabels print={print} />
+            <PitchZoneHeatMap stats={lStats} isPitcher perspective={perspective ?? undefined} batterHand="L" prominentLabels print={print} />
           </div>
           <div>
             <div className="text-xs font-bold mb-1" style={ink}>对右打者 vs RHB</div>
-            <PitchZoneHeatMap stats={rStats} isPitcher perspective={perspective ?? undefined} prominentLabels print={print} />
+            <PitchZoneHeatMap stats={rStats} isPitcher perspective={perspective ?? undefined} batterHand="R" prominentLabels print={print} />
           </div>
         </div>
         <div className="text-xs mt-2" style={print ? { color: "#333333" } : { color: "#64748b" }}>
@@ -151,7 +153,7 @@ function PlayerHeatCard({
         <div className="text-sm font-semibold text-white mb-2" style={ink}>
           {isPitcher ? "投球位置 Pitch Locations" : "面对来球位置 Faced Pitches"}
         </div>
-        <PitchZoneHeatMap stats={filterByBats(player.pitchLocationStats, null)} isPitcher={isPitcher} perspective={perspective ?? undefined} prominentLabels print={print} />
+        <PitchZoneHeatMap stats={filterByBats(player.pitchLocationStats, null)} isPitcher={isPitcher} perspective={perspective ?? undefined} batterHand={isPitcher ? undefined : ownBats} prominentLabels print={print} />
       </div>
     );
   }

@@ -41,11 +41,22 @@ function StrikeZoneFrame() {
 // `perspective` lets the viewer flip the left/right orientation regardless of the
 // player's real position (defaults to the usual pitcher-throws / everyone-else-
 // catcher's-view rule when omitted).
-export function PitchZoneHeatMap({ stats, isPitcher, perspective, prominentLabels = false, print = false }: { stats: PitchLocationStat[]; isPitcher: boolean; perspective?: "pitcher" | "catcher"; prominentLabels?: boolean; print?: boolean }) {
+//
+// `batterHand` matters only in catcher's view. zoneCounts is already inside/outside
+// relative to the actual batter (confirmed against real HBP data: always deep
+// "inside" regardless of the batter's hand, so the raw field is pre-flipped for
+// stance, not tied to a fixed field side) — that's why pitcher's view needs no
+// per-batter adjustment. But a real catcher stands behind a FIXED point on the
+// field: a right-handed batter's body is on the catcher's left, a left-handed
+// batter's is on the catcher's right, so which screen side "inside" belongs on
+// flips between them. Default (RHB / unknown / switch) keeps the long-standing
+// mirrored layout; "L" cancels the mirror so it matches pitcher's view instead.
+export function PitchZoneHeatMap({ stats, isPitcher, perspective, batterHand, prominentLabels = false, print = false }: { stats: PitchLocationStat[]; isPitcher: boolean; perspective?: "pitcher" | "catcher"; batterHand?: "L" | "R"; prominentLabels?: boolean; print?: boolean }) {
   if (stats.length === 0) {
     return <div className="text-center text-gray-400 py-8">暂无投球位置数据</div>;
   }
   const pitcherView = (perspective ?? (isPitcher ? "pitcher" : "catcher")) === "pitcher";
+  const mirror = !pitcherView && batterHand !== "L";
   const totals = Array(25).fill(0);
   let grandTotal = 0;
   for (const s of stats) {
@@ -55,12 +66,12 @@ export function PitchZoneHeatMap({ stats, isPitcher, perspective, prominentLabel
   const maxCount = Math.max(...totals, 1);
   const prominent = prominentLabels || print;
   const colLabels = prominent
-    ? (pitcherView ? ["外角", "", "", "", "内角"] : ["内角", "", "", "", "外角"])
-    : (pitcherView ? ["外", "", "", "", "内"] : ["内", "", "", "", "外"]);
+    ? (mirror ? ["内角", "", "", "", "外角"] : ["外角", "", "", "", "内角"])
+    : (mirror ? ["内", "", "", "", "外"] : ["外", "", "", "", "内"]);
   const axisLabelClass = print ? "text-sm font-bold" : prominent ? "text-sm font-semibold text-slate-100" : "text-xs text-gray-400";
   const axisStyle = print ? { color: PRINT_INK } : undefined;
   const rowLabels = ["高", "", "", "", "低"];
-  const perspectiveLabel = pitcherView ? "← 外角　　　内角 →（投手视角）" : "← 内角　　　外角 →（捕手视角）";
+  const perspectiveLabel = (mirror ? "← 内角　　　外角 →" : "← 外角　　　内角 →") + (pitcherView ? "（投手视角）" : "（捕手视角）");
 
   return (
     <div>
@@ -76,7 +87,7 @@ export function PitchZoneHeatMap({ stats, isPitcher, perspective, prominentLabel
             {Array.from({ length: 25 }, (_, displayIdx) => {
               const row = Math.floor(displayIdx / 5);
               const col = displayIdx % 5;
-              const dataIdx = pitcherView ? displayIdx : row * 5 + (4 - col);
+              const dataIdx = mirror ? row * 5 + (4 - col) : displayIdx;
               const count = totals[dataIdx];
               const prob = grandTotal > 0 ? count / grandTotal : 0;
               const intensity = count / maxCount;
@@ -268,8 +279,9 @@ export function FirstPitchStrikeGauge({ allAtBats }: { allAtBats: AtBat[] }) {
 }
 
 // ── Hit Zone Heat-Map ────────────────────────────────────────────────────────
-export function HitZoneHeatMap({ gameStats, isPitcher, perspective, prominentLabels = false, print = false }: { gameStats: GameStat[]; isPitcher: boolean; perspective?: "pitcher" | "catcher"; prominentLabels?: boolean; print?: boolean }) {
+export function HitZoneHeatMap({ gameStats, isPitcher, perspective, batterHand, prominentLabels = false, print = false }: { gameStats: GameStat[]; isPitcher: boolean; perspective?: "pitcher" | "catcher"; batterHand?: "L" | "R"; prominentLabels?: boolean; print?: boolean }) {
   const pitcherView = (perspective ?? (isPitcher ? "pitcher" : "catcher")) === "pitcher";
+  const mirror = !pitcherView && batterHand !== "L";
   const zoneHits   = Array(25).fill(0);
   const zoneTotals = Array(25).fill(0);
 
@@ -294,12 +306,12 @@ export function HitZoneHeatMap({ gameStats, isPitcher, perspective, prominentLab
   const maxRate  = Math.max(...hitRates, 0.01);
   const prominent = prominentLabels || print;
   const colLabels = prominent
-    ? (pitcherView ? ["外角", "", "", "", "内角"] : ["内角", "", "", "", "外角"])
-    : (pitcherView ? ["外", "", "", "", "内"] : ["内", "", "", "", "外"]);
+    ? (mirror ? ["内角", "", "", "", "外角"] : ["外角", "", "", "", "内角"])
+    : (mirror ? ["内", "", "", "", "外"] : ["外", "", "", "", "内"]);
   const axisLabelClass = print ? "text-sm font-bold" : prominent ? "text-sm font-semibold text-slate-100" : "text-xs text-gray-400";
   const axisStyle = print ? { color: PRINT_INK } : undefined;
   const rowLabels = ["高", "", "", "", "低"];
-  const perspectiveLabel = pitcherView ? "← 外角　　　内角 →（投手视角）" : "← 内角　　　外角 →（捕手视角）";
+  const perspectiveLabel = (mirror ? "← 内角　　　外角 →" : "← 外角　　　内角 →") + (pitcherView ? "（投手视角）" : "（捕手视角）");
 
   return (
     <div>
@@ -315,7 +327,7 @@ export function HitZoneHeatMap({ gameStats, isPitcher, perspective, prominentLab
             {Array.from({ length: 25 }, (_, displayIdx) => {
               const row = Math.floor(displayIdx / 5);
               const col = displayIdx % 5;
-              const dataIdx = pitcherView ? displayIdx : row * 5 + (4 - col);
+              const dataIdx = mirror ? row * 5 + (4 - col) : displayIdx;
               const rate  = hitRates[dataIdx];
               const total = zoneTotals[dataIdx];
               const hits  = zoneHits[dataIdx];

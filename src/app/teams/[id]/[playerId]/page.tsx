@@ -161,6 +161,11 @@ export default function PlayerPage() {
 
   // ── Perspective: pitcher sees their own view; everyone else uses catcher view
   const isPitcher = player.position === "P";
+  // catcher's view mirrors differently for a left-handed batter (see PlayerCharts.tsx);
+  // for a pitcher's chart this is whichever batter split is currently shown, for
+  // anyone else it's simply their own batting hand.
+  const ownBats: "L" | "R" | undefined = player.bats === "L" || player.bats === "R" ? player.bats : undefined;
+  const batterHand = isPitcher ? batsFilter ?? undefined : ownBats;
 
   // ── Aggregate stats ────────────────────────────────────────────────────────
   const allAtBats: AtBat[] = player.gameStats.flatMap((gs) => gs.atBats);
@@ -360,7 +365,7 @@ export default function PlayerPage() {
                   {isPitcher ? "投球位置" : "面对来球位置"}{" "}
                   <span className="text-sm font-normal text-gray-400">{isPitcher ? "Pitch Locations" : "Faced Pitches"}</span>
                 </h3>
-                <PitchZoneHeatMap stats={filterByBats(player.pitchLocationStats, isPitcher ? batsFilter : null)} isPitcher={isPitcher} perspective={perspective ?? undefined} />
+                <PitchZoneHeatMap stats={filterByBats(player.pitchLocationStats, isPitcher ? batsFilter : null)} isPitcher={isPitcher} perspective={perspective ?? undefined} batterHand={batterHand} />
               </div>
             )}
 
@@ -376,7 +381,7 @@ export default function PlayerPage() {
                 <p className="text-xs text-gray-500 mb-5">
                   各投球区域的安打率——颜色越深越容易打出安打
                 </p>
-                <HitZoneHeatMap gameStats={player.gameStats} isPitcher={isPitcher} perspective={perspective ?? undefined} />
+                <HitZoneHeatMap gameStats={player.gameStats} isPitcher={isPitcher} perspective={perspective ?? undefined} batterHand={ownBats} />
               </div>
             )}
 
