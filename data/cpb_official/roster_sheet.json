@@ -1,0 +1,2063 @@
+[
+ {
+  "code": "BJL",
+  "number": 0,
+  "zh": "刘忠勋",
+  "en": "LIU ZHONGXUN",
+  "position": "LF/CF/RF",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 2,
+  "zh": "多杰更智",
+  "en": "DUOJIE GENGZHI",
+  "position": "1B/3B",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 4,
+  "zh": "董悦锋",
+  "en": "DONG YUEFENG",
+  "position": "C",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 5,
+  "zh": "F.马丁内斯",
+  "en": "Francisco Jose Martinez Garcia",
+  "position": "LF/CF/RF",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "BJL",
+  "number": 6,
+  "zh": "罗梅罗",
+  "en": "Luis Miguel Romero Mansfarroll",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 7,
+  "zh": "姚恩多",
+  "en": "YAO,EN-DOU",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 8,
+  "zh": "扬基",
+  "en": "Yoel Yanqui Vera",
+  "position": "1B",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "BJL",
+  "number": 9,
+  "zh": "侯茂月",
+  "en": "HOU MAOYUE",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 12,
+  "zh": "阿劳斯",
+  "en": "Jonathan Aldair Arauz Morales",
+  "position": "SS",
+  "bats": "S",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 13,
+  "zh": "向钰",
+  "en": "XIANG YU",
+  "position": "LF/CF/RF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 16,
+  "zh": "塞哈斯",
+  "en": "Fher Cejas Perez",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 17,
+  "zh": "吴海正",
+  "en": "WU HAIZHENG",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 18,
+  "zh": "桑托斯",
+  "en": "Raico Santos Almeida",
+  "position": "LF/CF/RF",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "BJL",
+  "number": 19,
+  "zh": "何靖",
+  "en": "HE,CHING",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 21,
+  "zh": "科斯梅",
+  "en": "Andi Yaniel Cosme Oliva",
+  "position": "C",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 22,
+  "zh": "卓琳凯",
+  "en": "ZHUO LINKAI",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 28,
+  "zh": "帕尔马",
+  "en": "RONAIKER RICARDO PALMA RODRIGUEZ",
+  "position": "C",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 29,
+  "zh": "赵伦",
+  "en": "ZHAO LUN",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 31,
+  "zh": "奥尔特加",
+  "en": "IRVING RENE ORTEGA TAVERAS",
+  "position": "SS",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 35,
+  "zh": "埃雷拉",
+  "en": "Frank Ernesto Herrera Camejo",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 36,
+  "zh": "何富民",
+  "en": "HE FUMIN",
+  "position": "LF/CF/RF",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 37,
+  "zh": "特列尔",
+  "en": "CARLOS JOSE TELLER DE LEON",
+  "position": "LHP",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "BJL",
+  "number": 42,
+  "zh": "毛里斯",
+  "en": "Yankiel Mauris Gutierrez",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 44,
+  "zh": "向朗",
+  "en": "XIANG LANG",
+  "position": "2B/3B/SS/CF",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 45,
+  "zh": "德斯帕涅",
+  "en": "Alfredo Despaigne Rodriguez",
+  "position": "LF/CF/RF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 46,
+  "zh": "科利纳",
+  "en": "ROBER JOSE COLINA MOLINA",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 47,
+  "zh": "张佑丞",
+  "en": "CHANG,YU-CHENG",
+  "position": "LHP",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "BJL",
+  "number": 48,
+  "zh": "华旦扎西",
+  "en": "HUADAN ZHAXI",
+  "position": "LHP",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "BJL",
+  "number": 53,
+  "zh": "颜子谦",
+  "en": "YEN,TZU-CHIEN",
+  "position": "LF/RF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 56,
+  "zh": "丁树桐",
+  "en": "DING SHUTONG",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 57,
+  "zh": "卡里略",
+  "en": "FRANCISCO JAVIER CARRILLO BRICENO",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 66,
+  "zh": "武浩然",
+  "en": "WU HAORAN",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 67,
+  "zh": "林倍存",
+  "en": "LIN,PEI-TSUN",
+  "position": "C",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 68,
+  "zh": "罗锦骏",
+  "en": "LUO JINJUN",
+  "position": "1B",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 69,
+  "zh": "黄振崴",
+  "en": "HUANG,CHEN-WEI",
+  "position": "1B",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 72,
+  "zh": "莫雷诺",
+  "en": "Williander Jose Moreno Gomez",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 92,
+  "zh": "阿雷胡拉",
+  "en": "LUIS CARLOS JOSE AREJULA REGALADO",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "BJL",
+  "number": 99,
+  "zh": "陈嘉绩",
+  "en": "CHEN JIAJI",
+  "position": "2B/3B/SS",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 0,
+  "zh": "李柏成",
+  "en": "LEE，PO-CHENG",
+  "position": "C/2B/SS",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 1,
+  "zh": "古晟佑",
+  "en": "GU SHENG YU",
+  "position": "LF/CF/RF",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 3,
+  "zh": "彭智雄",
+  "en": "PENG ZHIXIONG",
+  "position": "LF/CF/RF",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 7,
+  "zh": "张勤洋",
+  "en": "ZHANG QINYANG",
+  "position": "LF/CF/RF",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 9,
+  "zh": "林煌尹",
+  "en": "LIN，HUANG-YIN",
+  "position": "2B/CF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 11,
+  "zh": "李鹤元",
+  "en": "LI HEYUAN",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 13,
+  "zh": "万玛才让",
+  "en": "WAN MACAIRANG",
+  "position": "SS",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 14,
+  "zh": "梁欣桐",
+  "en": "LIANG XINTONG",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 15,
+  "zh": "陈胜梧",
+  "en": "CHEN，SHENG-WU",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 19,
+  "zh": "吕博远",
+  "en": "LV BOYUAN",
+  "position": "RHP",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 20,
+  "zh": "井鹏威",
+  "en": "JING PENGWEI",
+  "position": "RHP/1B/2B/3B/SS/LF/CF/RF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 21,
+  "zh": "孟超",
+  "en": "MENG CHAO",
+  "position": "RHP",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 22,
+  "zh": "林强",
+  "en": "LIN QIANG",
+  "position": "C/2B",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 23,
+  "zh": "杨燕勇",
+  "en": "YANG YANYONG",
+  "position": "RHP",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 24,
+  "zh": "郑成功",
+  "en": "ZHENG CHENGGONG",
+  "position": "2B/3B/SS/LF/CF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 25,
+  "zh": "杨浩喆",
+  "en": "YANG，HAO-JHE",
+  "position": "LF/RF",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "CSW",
+  "number": 27,
+  "zh": "刘文龙",
+  "en": "LIU WENLONG",
+  "position": "C",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 28,
+  "zh": "梅绍彦",
+  "en": "MEHREN，CHRISTOPHER-GRANT",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 29,
+  "zh": "黄弘毅",
+  "en": "HUANG HUNG-YI",
+  "position": "RHP",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 31,
+  "zh": "王星雨",
+  "en": "WANG XINGYU",
+  "position": "RHP",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 32,
+  "zh": "曾佑恩",
+  "en": "TSENG，YU-EN",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 33,
+  "zh": "李圣子",
+  "en": "LI，SHENG-ZI",
+  "position": "2B/SS",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 34,
+  "zh": "张子博",
+  "en": "ZHANG ZIBO",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 41,
+  "zh": "高宸轩",
+  "en": "KAO，CHEN-HSUAN",
+  "position": "1B/3B",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 45,
+  "zh": "白朗诚",
+  "en": "BAI LANGCHENG",
+  "position": "LHP",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "CSW",
+  "number": 46,
+  "zh": "方克伟",
+  "en": "FANG，KO-WEI",
+  "position": "C",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 48,
+  "zh": "许云奕",
+  "en": "HSU，YUN-YI",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 51,
+  "zh": "朱建宾",
+  "en": "CHU，CHIEN-PIN",
+  "position": "LF/CF",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 55,
+  "zh": "王诗聪",
+  "en": "WANG，SHIH-TSUNG",
+  "position": "LF/RF",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 56,
+  "zh": "桑洋",
+  "en": "SANG YANG",
+  "position": "LHP",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "CSW",
+  "number": 58,
+  "zh": "强巴仁增",
+  "en": "QIANG BARENZENG",
+  "position": "C/3B",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 68,
+  "zh": "冯强",
+  "en": "FENG QIANG",
+  "position": "1B/3B",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 72,
+  "zh": "林鼎皓",
+  "en": "LIN，TIEN-HAO",
+  "position": "LHP",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "CSW",
+  "number": 77,
+  "zh": "华旦才让",
+  "en": "HUADAN CAIRANG",
+  "position": "RHP",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "CSW",
+  "number": 80,
+  "zh": "冯少杰",
+  "en": "FENG SHAOJIE",
+  "position": "1B/3B",
+  "bats": "R",
+  "throws": "L"
+ },
+ {
+  "code": "CSW",
+  "number": 86,
+  "zh": "余子浩",
+  "en": "YU ZIHAO",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 87,
+  "zh": "林丹盛",
+  "en": "LIN，DAN-SHENG",
+  "position": "RHP",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 88,
+  "zh": "韩杰",
+  "en": "HAN JIE",
+  "position": "1B",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "CSW",
+  "number": 89,
+  "zh": "李雨洋",
+  "en": "LIYUYANG",
+  "position": "1B/RF",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "CSW",
+  "number": 98,
+  "zh": "刘展嘉",
+  "en": "LIU，CHAN-CHIA",
+  "position": "LF/CF/RF",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 0,
+  "zh": "陈家维",
+  "en": "CHEN,CHIA-WEI",
+  "position": "3B",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 2,
+  "zh": "黄张鑫",
+  "en": "HUANG ZHANGXIN",
+  "position": "LF/CF/RF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 3,
+  "zh": "郭峻伟",
+  "en": "KUO,CHUN-WEI",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 5,
+  "zh": "汤玛士",
+  "en": "THOMAS EDWARD GREEN",
+  "position": "2B/3B/SS",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 6,
+  "zh": "乔治",
+  "en": "GEORGE KENTA CALLIL",
+  "position": "SS",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 8,
+  "zh": "战尚宇",
+  "en": "ZHAN SHANGYU",
+  "position": "C",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 9,
+  "zh": "周亨叡",
+  "en": "CHOU,HENG-JUI",
+  "position": "C",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 16,
+  "zh": "程家兴",
+  "en": "CHENG JIAXING",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 21,
+  "zh": "迪伦",
+  "en": "DYLAN CHOWLES UNSWORTH",
+  "position": "RHP/CF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 22,
+  "zh": "万昭清",
+  "en": "WAN,CHAO-CHING",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 24,
+  "zh": "林逸翔",
+  "en": "LIN,YI-HSIANG",
+  "position": "SS",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 25,
+  "zh": "梁拯华",
+  "en": "LIANG ZHENGHUA",
+  "position": "1B",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "FZS",
+  "number": 29,
+  "zh": "陈育轩",
+  "en": "CHEN,YU-SYUAN",
+  "position": "RF",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "FZS",
+  "number": 30,
+  "zh": "吕修鑫",
+  "en": "LV XIUXIN",
+  "position": "C",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 31,
+  "zh": "潘文轩",
+  "en": "PAN WENXUAN",
+  "position": "C",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 32,
+  "zh": "陈高冰",
+  "en": "CHEN GAOBING",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 33,
+  "zh": "黄博蔚",
+  "en": "HUANG,BO-WEI",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 35,
+  "zh": "陈家乐",
+  "en": "CHEN JIALE",
+  "position": "RHP",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "FZS",
+  "number": 39,
+  "zh": "赖圣峯",
+  "en": "LAI,SHENG-FONG",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 40,
+  "zh": "曾健南",
+  "en": "TSANG ,KIN-NAM",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 44,
+  "zh": "胡俊彦",
+  "en": "HU,CHUN-YEN",
+  "position": "LHP",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "FZS",
+  "number": 47,
+  "zh": "林恳",
+  "en": "LIN,KEN",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 48,
+  "zh": "张棕帏",
+  "en": "CHANG,TSUNG-WEI",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 49,
+  "zh": "江育鸿",
+  "en": "CHIANG,YU-HUNG",
+  "position": "C/1B",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 53,
+  "zh": "提姆",
+  "en": "TIM FISCHER",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 54,
+  "zh": "杨默",
+  "en": "YANG MO",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 55,
+  "zh": "蔡宗修",
+  "en": "TSAI,TSUNG-HSIU",
+  "position": "C",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 57,
+  "zh": "刘大路",
+  "en": "LIU DALU",
+  "position": "C",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 65,
+  "zh": "谢毅",
+  "en": "HSIEH,YI",
+  "position": "2B/3B/SS",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 68,
+  "zh": "伊帅",
+  "en": "YI SHUAI",
+  "position": "LF",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 69,
+  "zh": "罗允序",
+  "en": "LO,YUN-HSU",
+  "position": "LF",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 71,
+  "zh": "郭世宇",
+  "en": "KUO,SHIH-YU",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 77,
+  "zh": "陆信屹",
+  "en": "LU XINYI",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 83,
+  "zh": "吴昌言",
+  "en": "WU CHANGYAN",
+  "position": "1B/3B",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 91,
+  "zh": "洪宸宇",
+  "en": "HUNG,CHEN-YU",
+  "position": "1B",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "FZS",
+  "number": 93,
+  "zh": "江羽津",
+  "en": "JIANG YUJIN",
+  "position": "3B",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "FZS",
+  "number": 99,
+  "zh": "李灏昇",
+  "en": "LEE,HAO-SHENG",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 3,
+  "zh": "郝佳奇",
+  "en": "HAO JIAQI",
+  "position": "C/1B/2B/3B/RHP",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 5,
+  "zh": "马丁内斯",
+  "en": "EMERSON RAFAEL MARTINEZ FRANCO",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 6,
+  "zh": "刘祥斌",
+  "en": "YU SANGPIN",
+  "position": "LF/CF/RF",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "SHO",
+  "number": 7,
+  "zh": "杨晋",
+  "en": "YANG JIN",
+  "position": "1B/2B/3B/SS",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 10,
+  "zh": "邢文彬",
+  "en": "XING WENBIN",
+  "position": "1B/2B/3B/SS",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 11,
+  "zh": "李建业",
+  "en": "LIJIANYE",
+  "position": "LHP",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "SHO",
+  "number": 12,
+  "zh": "李在敏",
+  "en": "LEE JAEMIN",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 13,
+  "zh": "倪鑫泽",
+  "en": "NI XINZE",
+  "position": "1B/2B/3B/SS",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 16,
+  "zh": "金俊尚",
+  "en": "KIM JUNSANG",
+  "position": "SS",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 17,
+  "zh": "基洛梅",
+  "en": "FRANKLYN KILOME PERALTA",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 18,
+  "zh": "马奎尔",
+  "en": "ANGEL YEFREY MACUARE CABRERA",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 19,
+  "zh": "金仪俊",
+  "en": "KIM EUIJUN",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 21,
+  "zh": "伊塞亚",
+  "en": "EDGAR ANTONIO ISEA BRITO",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 22,
+  "zh": "金锡勋",
+  "en": "KIM SEOK HOON",
+  "position": "LF/CF/RF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 23,
+  "zh": "张文韬",
+  "en": "ZHANG WENTAO",
+  "position": "1B/2B/3B/SS",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 26,
+  "zh": "屠佳伦",
+  "en": "TU JIALUN",
+  "position": "LHP",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "SHO",
+  "number": 27,
+  "zh": "黄念誉",
+  "en": "HUANG NIEN YU",
+  "position": "C",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 28,
+  "zh": "林煜俊",
+  "en": "LIN YUJUN",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 29,
+  "zh": "迭戈",
+  "en": "DIEGO ANDRES INFANTE HERNANDEZ",
+  "position": "",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 31,
+  "zh": "王斌",
+  "en": "WANG BIN",
+  "position": "1B/2B/3B/SS",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 35,
+  "zh": "杨胜奥",
+  "en": "YANG SHENGAO",
+  "position": "1B/2B/3B/SS",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 37,
+  "zh": "理查德",
+  "en": "Denzel Rinaldo Richardson",
+  "position": "LF/CF/RF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 38,
+  "zh": "平间凛太郎",
+  "en": "HIRAMA RINTARO",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 51,
+  "zh": "寇永康",
+  "en": "KOU YONGKANG",
+  "position": "LF/CF/RF",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 53,
+  "zh": "金琯祐",
+  "en": "KIM GWANWOO",
+  "position": "2B",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 55,
+  "zh": "张原镐",
+  "en": "JANG WONHO",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 58,
+  "zh": "林梓强",
+  "en": "LIN ZIQIANG",
+  "position": "1B/2B/3B/LF/CF/RF/RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 60,
+  "zh": "陈冠勋",
+  "en": "CHEN GUAN XUN",
+  "position": "LHP",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "SHO",
+  "number": 62,
+  "zh": "池珊",
+  "en": "JI SAN",
+  "position": "C",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 65,
+  "zh": "麦政文",
+  "en": "MAI ZHENGWEN",
+  "position": "C",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 68,
+  "zh": "佩雷斯",
+  "en": "WILMER MANUEL PEREZ RAMIREZ",
+  "position": "C",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 69,
+  "zh": "樱井周斗",
+  "en": "SAKURAI SHUTO",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 87,
+  "zh": "恩德森",
+  "en": "ENDERSON DANIEL FRANCORODRIGUEZ",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 89,
+  "zh": "巴奇达鲁 妮卡儿",
+  "en": "PA CHI TA LU NI KA ERH",
+  "position": "RF",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 90,
+  "zh": "U.亨利",
+  "en": "URRUTIA RODRIGUEZ HENRY ALEXANDER",
+  "position": "LF/CF/RF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 91,
+  "zh": "布劳里奥",
+  "en": "BRAULIO VASQUEZ MOREL",
+  "position": "SS",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SHO",
+  "number": 92,
+  "zh": "瓦尔加斯",
+  "en": "JESUS MIGUEL VARGAS RANGEL",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 0,
+  "zh": "马莱克斯",
+  "en": "Mallex Lydell Smith",
+  "position": "LF/CF",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 1,
+  "zh": "阿拉贡",
+  "en": "Lord Aragorn de Vera",
+  "position": "2B/3B/SS",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 2,
+  "zh": "但丁",
+  "en": "Dante Jalal Leach",
+  "position": "2B/SS/CF",
+  "bats": "S",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 3,
+  "zh": "迪莱诺",
+  "en": "Delino Diaab Deshields",
+  "position": "2B/CF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 7,
+  "zh": "石宏飞",
+  "en": "SHI.HONGFEI",
+  "position": "LF/CF/RF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 8,
+  "zh": "费利克斯",
+  "en": "Felix Bladimil Cabrera Baez",
+  "position": "LHP",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "SZB",
+  "number": 9,
+  "zh": "单正廷",
+  "en": "SHAN,CHENGTING",
+  "position": "1B",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 10,
+  "zh": "凯德",
+  "en": "Kade Walker Scott Kozak",
+  "position": "LHP",
+  "bats": "R",
+  "throws": "L"
+ },
+ {
+  "code": "SZB",
+  "number": 12,
+  "zh": "雷克斯",
+  "en": "David Mathew Reckers",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 13,
+  "zh": "马俊铱",
+  "en": "MA JUNYI",
+  "position": "RHP/1B/RF",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 14,
+  "zh": "吴启锐",
+  "en": "WU QIRUI",
+  "position": "SS",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 15,
+  "zh": "小林亚由良",
+  "en": "Kobayashi Ayura",
+  "position": "LHP",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "SZB",
+  "number": 16,
+  "zh": "布伦登",
+  "en": "Brenden Michael Morris",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 18,
+  "zh": "张富原",
+  "en": "JHANG,FU-YUAN",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 22,
+  "zh": "鲁艺",
+  "en": "LuYi",
+  "position": "LF",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 23,
+  "zh": "郑子健",
+  "en": "ZHENG ZIJIAN",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 24,
+  "zh": "华莱士",
+  "en": "Landon Kenneth Wallace",
+  "position": "C/CF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 25,
+  "zh": "安德鲁",
+  "en": "Andrew John Guardino",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 27,
+  "zh": "王嘉中",
+  "en": "WANG.JIA.ZHONG",
+  "position": "LHP/LF/CF/RF",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "SZB",
+  "number": 31,
+  "zh": "雅各布",
+  "en": "Jacob Morin",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 34,
+  "zh": "罗纳尔多",
+  "en": "Ronaldo Antonio Flores Guzman",
+  "position": "C/1B",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 35,
+  "zh": "达里尔",
+  "en": "Dariel Aneudys Gomez Frias",
+  "position": "1B",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 36,
+  "zh": "布尔戈斯",
+  "en": "Enrique Burgos Arosemena",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 37,
+  "zh": "张彦伦",
+  "en": "Alan Zhang Carter",
+  "position": "RHP",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 40,
+  "zh": "尤信淳",
+  "en": "YU,HSIN-CHUN",
+  "position": "1B",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "SZB",
+  "number": 47,
+  "zh": "何鑫",
+  "en": "HeXin",
+  "position": "3B/CF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 52,
+  "zh": "张伟兴",
+  "en": "ZHANG WEIXING",
+  "position": "RHP/CF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 55,
+  "zh": "范艺川",
+  "en": "FAN YICHUAN",
+  "position": "LHP/1B",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "SZB",
+  "number": 57,
+  "zh": "王帅祖",
+  "en": "WANG SHUAIZU",
+  "position": "1B",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 60,
+  "zh": "宋佳祺",
+  "en": "SONG JIAQI",
+  "position": "RHP/CF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 61,
+  "zh": "张浩楠",
+  "en": "ZHANG HAONAN",
+  "position": "RHP",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 66,
+  "zh": "罗北星",
+  "en": "LUO BEIXING",
+  "position": "RF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 75,
+  "zh": "吴骏浩",
+  "en": "WU JUNHAO",
+  "position": "C",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 80,
+  "zh": "王洋",
+  "en": "WANG YANG",
+  "position": "3B",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 88,
+  "zh": "图基",
+  "en": "Dany Gilbert Kiti Toussaint",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 96,
+  "zh": "刘文杰",
+  "en": "LIUWENJIE",
+  "position": "C",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 97,
+  "zh": "王鹏斐",
+  "en": "WANG, PENG-FEI",
+  "position": "RHP",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "SZB",
+  "number": 99,
+  "zh": "刘家维",
+  "en": "LIU,CHIA-WEI",
+  "position": "3B",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 0,
+  "zh": "王耔棋",
+  "en": "WANG ZIQI",
+  "position": "LF/RF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 1,
+  "zh": "林柏亿",
+  "en": "LIN,PO-YI",
+  "position": "SS",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 3,
+  "zh": "杨力炫",
+  "en": "YANG LIXUAN",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 7,
+  "zh": "何塞",
+  "en": "Jose Amaury Norona Gandara",
+  "position": "LF/CF/RF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 8,
+  "zh": "黄坤豪",
+  "en": "HUANG KUNHAO",
+  "position": "C/2B/3B",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 9,
+  "zh": "马奎斯",
+  "en": "Emilio Eduardo Marquez Quintero",
+  "position": "LHP",
+  "bats": "R",
+  "throws": "L"
+ },
+ {
+  "code": "XMD",
+  "number": 11,
+  "zh": "岩崎优太",
+  "en": "Iwasaki Yuta",
+  "position": "RHP/LHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 12,
+  "zh": "莫斯科索",
+  "en": "Yeury Gervacio Moscoso",
+  "position": "LHP",
+  "bats": "L",
+  "throws": "L"
+ },
+ {
+  "code": "XMD",
+  "number": 13,
+  "zh": "陈洛阳",
+  "en": "CHEN,LUO-YANG",
+  "position": "1B/2B/3B",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 14,
+  "zh": "安迪",
+  "en": "Andy Vargas Lescaille",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 15,
+  "zh": "伊健",
+  "en": "YI JIAN",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 16,
+  "zh": "凯文",
+  "en": "Kevin Bryan Sanchez Marte",
+  "position": "LF/CF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 17,
+  "zh": "二宫衣沙贵",
+  "en": "Ninomiya Isaki",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 18,
+  "zh": "凯尔文",
+  "en": "Kelvin Oswaldo Melean Perez",
+  "position": "2B/3B",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 20,
+  "zh": "杨皓然",
+  "en": "YANG,HAO-JAN",
+  "position": "C/1B",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 27,
+  "zh": "张艾奇",
+  "en": "ZHANG AIQI",
+  "position": "3B",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 31,
+  "zh": "帕维尔",
+  "en": "Pavel Hernandez Bruce",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 32,
+  "zh": "钟国华",
+  "en": "CHUNG,KUO-HUA",
+  "position": "1B",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 33,
+  "zh": "李人豪",
+  "en": "LEE,JEN-HAO",
+  "position": "LF/CF",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 35,
+  "zh": "木本匠",
+  "en": "Kimoto Takumi",
+  "position": "C",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 36,
+  "zh": "许子绅",
+  "en": "HSU, ZI-SHEN",
+  "position": "2B/3B/SS",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 39,
+  "zh": "胡家龙",
+  "en": "HU,JIA-LONG",
+  "position": "C",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 43,
+  "zh": "潘振宇",
+  "en": "PAN, CHEN-YU",
+  "position": "LF/RF",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 44,
+  "zh": "王维辰",
+  "en": "WANG,WEI-CHEN",
+  "position": "2B/3B/CF/RF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 45,
+  "zh": "亨利",
+  "en": "Henry Henry Montas",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 47,
+  "zh": "黄勇传",
+  "en": "HUANG,YUNG-CHUAN",
+  "position": "2B/3B/SS",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 50,
+  "zh": "姜山",
+  "en": "KANG SAN",
+  "position": "C/3B/LF",
+  "bats": "L",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 51,
+  "zh": "亚西尔",
+  "en": "Yasiel Andy Gonzalez Garcia",
+  "position": "LF/CF/RF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 52,
+  "zh": "苏勇铨",
+  "en": "SU YONGQUAN",
+  "position": "LF/RF",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 55,
+  "zh": "铃木莲",
+  "en": "SUZUKI REN",
+  "position": "C/1B/3B/SS",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 56,
+  "zh": "阿尔曼多",
+  "en": "Armandoaddiel Duenas More",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 58,
+  "zh": "泰隆",
+  "en": "Tailon Sanchezdiaz",
+  "position": "2B/3B/SS",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 68,
+  "zh": "汪骏",
+  "en": "WANG JUN",
+  "position": "C",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 69,
+  "zh": "苏捷恩",
+  "en": "SU,CHIEH-EN",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 70,
+  "zh": "张喜凯",
+  "en": "TEOH,XI-KAI",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 71,
+  "zh": "陆昀",
+  "en": "LU YUN",
+  "position": "3B/SS",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 73,
+  "zh": "李嘉祥",
+  "en": "LI, CHIA-HSIANG",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 78,
+  "zh": "渡边明贵",
+  "en": "Watanabe Aki",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ },
+ {
+  "code": "XMD",
+  "number": 99,
+  "zh": "胡梦馗",
+  "en": "Hu Mengkui",
+  "position": "RHP",
+  "bats": "R",
+  "throws": "R"
+ }
+]

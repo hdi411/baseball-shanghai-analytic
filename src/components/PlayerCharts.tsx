@@ -38,10 +38,14 @@ function StrikeZoneFrame() {
 }
 
 // ── Faced / thrown pitches heat-map (Supabase pitch_location_stats) ─────────
-export function PitchZoneHeatMap({ stats, isPitcher, prominentLabels = false, print = false }: { stats: PitchLocationStat[]; isPitcher: boolean; prominentLabels?: boolean; print?: boolean }) {
+// `perspective` lets the viewer flip the left/right orientation regardless of the
+// player's real position (defaults to the usual pitcher-throws / everyone-else-
+// catcher's-view rule when omitted).
+export function PitchZoneHeatMap({ stats, isPitcher, perspective, prominentLabels = false, print = false }: { stats: PitchLocationStat[]; isPitcher: boolean; perspective?: "pitcher" | "catcher"; prominentLabels?: boolean; print?: boolean }) {
   if (stats.length === 0) {
     return <div className="text-center text-gray-400 py-8">暂无投球位置数据</div>;
   }
+  const pitcherView = (perspective ?? (isPitcher ? "pitcher" : "catcher")) === "pitcher";
   const totals = Array(25).fill(0);
   let grandTotal = 0;
   for (const s of stats) {
@@ -51,12 +55,12 @@ export function PitchZoneHeatMap({ stats, isPitcher, prominentLabels = false, pr
   const maxCount = Math.max(...totals, 1);
   const prominent = prominentLabels || print;
   const colLabels = prominent
-    ? (isPitcher ? ["外角", "", "", "", "内角"] : ["内角", "", "", "", "外角"])
-    : (isPitcher ? ["外", "", "", "", "内"] : ["内", "", "", "", "外"]);
+    ? (pitcherView ? ["外角", "", "", "", "内角"] : ["内角", "", "", "", "外角"])
+    : (pitcherView ? ["外", "", "", "", "内"] : ["内", "", "", "", "外"]);
   const axisLabelClass = print ? "text-sm font-bold" : prominent ? "text-sm font-semibold text-slate-100" : "text-xs text-gray-400";
   const axisStyle = print ? { color: PRINT_INK } : undefined;
   const rowLabels = ["高", "", "", "", "低"];
-  const perspectiveLabel = isPitcher ? "← 外角　　　内角 →（投手视角）" : "← 内角　　　外角 →（捕手视角）";
+  const perspectiveLabel = pitcherView ? "← 外角　　　内角 →（投手视角）" : "← 内角　　　外角 →（捕手视角）";
 
   return (
     <div>
@@ -72,7 +76,7 @@ export function PitchZoneHeatMap({ stats, isPitcher, prominentLabels = false, pr
             {Array.from({ length: 25 }, (_, displayIdx) => {
               const row = Math.floor(displayIdx / 5);
               const col = displayIdx % 5;
-              const dataIdx = isPitcher ? displayIdx : row * 5 + (4 - col);
+              const dataIdx = pitcherView ? displayIdx : row * 5 + (4 - col);
               const count = totals[dataIdx];
               const prob = grandTotal > 0 ? count / grandTotal : 0;
               const intensity = count / maxCount;
@@ -107,6 +111,75 @@ export function PitchZoneHeatMap({ stats, isPitcher, prominentLabels = false, pr
       </div>
     </div>
   );
+}
+
+// ── Perspective toggle (捕手视角 / 投手视角) ──────────────────────────────────
+// Shared by the player page and the heatmap export page. `value` is the override;
+// null means "auto" — pitcher's own view for a pitcher, catcher's view otherwise.
+export function PerspectiveToggle({
+  value, onChange, autoLabel = "自动",
+}: {
+  value: "pitcher" | "catcher" | null;
+  onChange: (v: "pitcher" | "catcher" | null) => void;
+  autoLabel?: string;
+}) {
+  const opts: { key: "pitcher" | "catcher" | null; label: string }[] = [
+    { key: null, label: autoLabel },
+    { key: "catcher", label: "捕手视角" },
+    { key: "pitcher", label: "投手视角" },
+  ];
+  return (
+    <div className="inline-flex rounded-lg overflow-hidden" style={{ border: "1px solid #334155" }}>
+      {opts.map((o) => (
+        <button key={o.label} type="button" onClick={() => onChange(o.key)}
+          className="text-sm px-3 py-1.5"
+          style={{
+            background: value === o.key ? "#22c55e" : "transparent",
+            color: value === o.key ? "#0f172a" : "#94a3b8",
+            fontWeight: 500,
+          }}>
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ── Bats-split toggle (全部 / 左打者 / 右打者) ─────────────────────────────────
+// Pitchers only: filters PitchZoneHeatMap's thrown-pitch stats down to pitches
+// thrown to left- or right-handed batters (see vs_bats in pitch_location_stats).
+export function BatsFilterToggle({
+  value, onChange,
+}: {
+  value: "L" | "R" | null;
+  onChange: (v: "L" | "R" | null) => void;
+}) {
+  const opts: { key: "L" | "R" | null; label: string }[] = [
+    { key: null, label: "全部" },
+    { key: "L", label: "对左打者" },
+    { key: "R", label: "对右打者" },
+  ];
+  return (
+    <div className="inline-flex rounded-lg overflow-hidden" style={{ border: "1px solid #334155" }}>
+      {opts.map((o) => (
+        <button key={o.label} type="button" onClick={() => onChange(o.key)}
+          className="text-sm px-3 py-1.5"
+          style={{
+            background: value === o.key ? "#22c55e" : "transparent",
+            color: value === o.key ? "#0f172a" : "#94a3b8",
+            fontWeight: 500,
+          }}>
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// Picks the pitch_location_stats rows matching a bats filter: the plain
+// (vsBats undefined) rows for "全部", or the matching split rows for L/R.
+export function filterByBats(stats: PitchLocationStat[], batsFilter: "L" | "R" | null): PitchLocationStat[] {
+  return stats.filter((s) => (batsFilter === null ? s.vsBats === undefined : s.vsBats === batsFilter));
 }
 
 // ── First Pitch Strike Gauge ─────────────────────────────────────────────────
@@ -165,7 +238,8 @@ export function FirstPitchStrikeGauge({ allAtBats }: { allAtBats: AtBat[] }) {
 }
 
 // ── Hit Zone Heat-Map ────────────────────────────────────────────────────────
-export function HitZoneHeatMap({ gameStats, isPitcher, prominentLabels = false, print = false }: { gameStats: GameStat[]; isPitcher: boolean; prominentLabels?: boolean; print?: boolean }) {
+export function HitZoneHeatMap({ gameStats, isPitcher, perspective, prominentLabels = false, print = false }: { gameStats: GameStat[]; isPitcher: boolean; perspective?: "pitcher" | "catcher"; prominentLabels?: boolean; print?: boolean }) {
+  const pitcherView = (perspective ?? (isPitcher ? "pitcher" : "catcher")) === "pitcher";
   const zoneHits   = Array(25).fill(0);
   const zoneTotals = Array(25).fill(0);
 
@@ -190,12 +264,12 @@ export function HitZoneHeatMap({ gameStats, isPitcher, prominentLabels = false, 
   const maxRate  = Math.max(...hitRates, 0.01);
   const prominent = prominentLabels || print;
   const colLabels = prominent
-    ? (isPitcher ? ["外角", "", "", "", "内角"] : ["内角", "", "", "", "外角"])
-    : (isPitcher ? ["外", "", "", "", "内"] : ["内", "", "", "", "外"]);
+    ? (pitcherView ? ["外角", "", "", "", "内角"] : ["内角", "", "", "", "外角"])
+    : (pitcherView ? ["外", "", "", "", "内"] : ["内", "", "", "", "外"]);
   const axisLabelClass = print ? "text-sm font-bold" : prominent ? "text-sm font-semibold text-slate-100" : "text-xs text-gray-400";
   const axisStyle = print ? { color: PRINT_INK } : undefined;
   const rowLabels = ["高", "", "", "", "低"];
-  const perspectiveLabel = isPitcher ? "← 外角　　　内角 →（投手视角）" : "← 内角　　　外角 →（捕手视角）";
+  const perspectiveLabel = pitcherView ? "← 外角　　　内角 →（投手视角）" : "← 内角　　　外角 →（捕手视角）";
 
   return (
     <div>
@@ -211,7 +285,7 @@ export function HitZoneHeatMap({ gameStats, isPitcher, prominentLabels = false, 
             {Array.from({ length: 25 }, (_, displayIdx) => {
               const row = Math.floor(displayIdx / 5);
               const col = displayIdx % 5;
-              const dataIdx = isPitcher ? displayIdx : row * 5 + (4 - col);
+              const dataIdx = pitcherView ? displayIdx : row * 5 + (4 - col);
               const rate  = hitRates[dataIdx];
               const total = zoneTotals[dataIdx];
               const hits  = zoneHits[dataIdx];

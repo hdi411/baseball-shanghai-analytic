@@ -9,7 +9,7 @@ import {
 } from "@/lib/types";
 import { getTeam } from "@/lib/store";
 import { getFile } from "@/lib/db";
-import { PitchZoneHeatMap, FirstPitchStrikeGauge, HitZoneHeatMap, isHitResult, trueAtBats } from "@/components/PlayerCharts";
+import { PitchZoneHeatMap, FirstPitchStrikeGauge, HitZoneHeatMap, PerspectiveToggle, BatsFilterToggle, filterByBats, isHitResult, trueAtBats } from "@/components/PlayerCharts";
 
 // ── Spray Chart ──────────────────────────────────────────────────────────────
 const FIELD_POS: Record<number, [number, number]> = {
@@ -120,6 +120,10 @@ export default function PlayerPage() {
   const [activeTab,     setActiveTab]     = useState<"stats" | "charts">("stats");
   const [selectedChart, setSelectedChart] = useState<ChartFile | null>(null);
   const [pdfUrl,        setPdfUrl]        = useState<string | null>(null);
+  // null = auto (pitcher's own view for a pitcher, catcher's view otherwise)
+  const [perspective,   setPerspective]   = useState<"pitcher" | "catcher" | null>(null);
+  // pitchers only: filter thrown pitches by the opposing batter's handedness
+  const [batsFilter,    setBatsFilter]    = useState<"L" | "R" | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -136,6 +140,8 @@ export default function PlayerPage() {
     }
     load();
   }, [teamId, playerId]);
+
+  useEffect(() => { setPerspective(null); setBatsFilter(null); }, [playerId]);
 
   if (loading) {
     return (
@@ -334,13 +340,27 @@ export default function PlayerPage() {
             )}
 
             {/* ── Faced pitches (Supabase) ──────────────────────────────── */}
+            {(player.pitchLocationStats.length > 0 ||
+              player.gameStats.some((gs) => gs.atBats.some((ab) => ab.pitchZone !== undefined))) && (
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-sm text-gray-400">热区图视角</span>
+                <PerspectiveToggle value={perspective} onChange={setPerspective} />
+                {isPitcher && player.pitchLocationStats.some((s) => s.vsBats) && (
+                  <>
+                    <span className="text-sm text-gray-400 ml-2">对战</span>
+                    <BatsFilterToggle value={batsFilter} onChange={setBatsFilter} />
+                  </>
+                )}
+              </div>
+            )}
+
             {player.pitchLocationStats.length > 0 && (
               <div className="bg-gray-800 rounded-lg p-6">
                 <h3 className="text-lg font-semibold mb-2">
                   {isPitcher ? "投球位置" : "面对来球位置"}{" "}
                   <span className="text-sm font-normal text-gray-400">{isPitcher ? "Pitch Locations" : "Faced Pitches"}</span>
                 </h3>
-                <PitchZoneHeatMap stats={player.pitchLocationStats} isPitcher={isPitcher} />
+                <PitchZoneHeatMap stats={filterByBats(player.pitchLocationStats, isPitcher ? batsFilter : null)} isPitcher={isPitcher} perspective={perspective ?? undefined} />
               </div>
             )}
 
@@ -356,7 +376,7 @@ export default function PlayerPage() {
                 <p className="text-xs text-gray-500 mb-5">
                   各投球区域的安打率——颜色越深越容易打出安打
                 </p>
-                <HitZoneHeatMap gameStats={player.gameStats} isPitcher={isPitcher} />
+                <HitZoneHeatMap gameStats={player.gameStats} isPitcher={isPitcher} perspective={perspective ?? undefined} />
               </div>
             )}
 

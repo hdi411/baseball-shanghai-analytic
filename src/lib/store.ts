@@ -69,6 +69,7 @@ function rowToPitchLocationStat(row: any): PitchLocationStat {
     opponent:   row.opponent,
     zoneCounts,
     createdAt:  row.created_at,
+    vsBats:     row.vs_bats ?? undefined,
   };
 }
 

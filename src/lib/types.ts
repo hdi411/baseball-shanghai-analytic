@@ -63,6 +63,9 @@ export interface PitchLocationStat {
   opponent?: string;
   zoneCounts: number[]; // 25 elements, 0-24 (5×5 grid, pitcher view: left=外 right=内, top=高 bottom=低)
   createdAt: string;
+  // Pitchers only: undefined = all batters combined; "L"/"R" = a split by the
+  // opposing batter's handedness (switch hitters aren't split, see importer).
+  vsBats?: "L" | "R";
 }
 
 export interface Player {

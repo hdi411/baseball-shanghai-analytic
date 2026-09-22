@@ -2,7 +2,12 @@
 """Import official CPB box-score pitch/at-bat data into Supabase.
 
 Populates:
-  pitch_location_stats  (25-zone faced-pitch counts, one row per player per game)
+  pitch_location_stats  (25-zone faced-pitch counts, one row per player per game;
+                         a pitcher also gets two extra rows per game — vs_bats
+                         'L' and 'R' — splitting their thrown pitches by the
+                         batter's handedness. Switch hitters ('S'/unknown) are
+                         left out of the split but still count in the plain,
+                         vs_bats=NULL row.)
   game_stats.at_bats    (per-plate-appearance result / firstPitchStrike / pitchZone)
 
 Matching: CPB numeric team/player ids -> our Supabase rows, via
@@ -234,13 +239,14 @@ def load_supabase_refs():
             code_to_team_id[m.group(1)] = t["id"]
     assert len(code_to_team_id) == 6, f"expected 6 team codes, got {code_to_team_id}"
 
-    status, players = sb_request("GET", "players?select=id,team_id,name,number,position&limit=1000")
+    status, players = sb_request("GET", "players?select=id,team_id,name,number,position,bats&limit=1000")
     assert status == 200, players
     team_number_to_player = {(p["team_id"], str(int(p["number"]))): p["id"] for p in players}
     position_by_player = {p["id"]: p["position"] for p in players}
+    bats_by_player = {p["id"]: p["bats"] for p in players}
 
     team_id_to_name = {t["id"]: t["name"] for t in teams}
-    return code_to_team_id, team_number_to_player, team_id_to_name, position_by_player
+    return code_to_team_id, team_number_to_player, team_id_to_name, position_by_player, bats_by_player
 
 
 # ── auto-create players that are missing from the roster ─────────────────────
@@ -397,7 +403,7 @@ def find_missing_players(paths, code_to_team_id, team_number_to_player):
 
 def create_missing_players(paths, refs, commit):
     """Create roster rows for newly seen players. Returns refs (reloaded if anything was created)."""
-    code_to_team_id, team_number_to_player, _team_names, _positions = refs
+    code_to_team_id, team_number_to_player, _team_names, _positions, _bats = refs
     missing = find_missing_players(paths, code_to_team_id, team_number_to_player)
     if not missing:
         return refs
@@ -463,7 +469,7 @@ def iter_plays_in_order(game_plays_all):
                 yield row
 
 
-def process_game(path, code_to_team_id, team_number_to_player, team_id_to_name, position_by_player):
+def process_game(path, code_to_team_id, team_number_to_player, team_id_to_name, position_by_player, bats_by_player):
     data = json.loads(Path(path).read_text())
     game_data = data.get("gameData")
     game_plays = (data.get("gamePlays") or {}).get("all")
@@ -500,6 +506,9 @@ def process_game(path, code_to_team_id, team_number_to_player, team_id_to_name, 
     # faced-pitches row here even if they batted that game — only a thrown-pitches one.
     faced_zone_counts_by_batter = {}
     thrown_zone_counts_by_pitcher = {}
+    # same as thrown_zone_counts_by_pitcher, but split by the batter's handedness
+    # (bats 'S'/unknown can't be classified and is left out of both)
+    thrown_zone_counts_by_pitcher_vs = {"L": {}, "R": {}}
     team_id_by_player = {}
     at_bats_by_player = {}
     batting_order_by_player = {}
@@ -537,8 +546,13 @@ def process_game(path, code_to_team_id, team_number_to_player, team_id_to_name, 
         else:
             team_id_by_player[pitcher_id] = pitcher_team_id
             if ptype in LOCATED_TYPES:
+                idx = zone_index(row["pitchoutside"], row["pitchheight"])
                 zc = thrown_zone_counts_by_pitcher.setdefault(pitcher_id, [0] * 25)
-                zc[zone_index(row["pitchoutside"], row["pitchheight"])] += 1
+                zc[idx] += 1
+                batter_bats = batter_id is not None and bats_by_player.get(batter_id)
+                if batter_bats in ("L", "R"):
+                    zc_vs = thrown_zone_counts_by_pitcher_vs[batter_bats].setdefault(pitcher_id, [0] * 25)
+                    zc_vs[idx] += 1
 
         if row.get("pa") == 1:
             if batter_id is not None:
@@ -571,7 +585,20 @@ def process_game(path, code_to_team_id, team_number_to_player, team_id_to_name, 
             "game_date": game_date,
             "opponent": opponent_name_for(team_id),
             "zone_counts": zc,
+            "vs_bats": None,
         })
+    for bats, by_pitcher in thrown_zone_counts_by_pitcher_vs.items():
+        for player_id, zc in by_pitcher.items():
+            if sum(zc) == 0:
+                continue
+            team_id = team_id_by_player.get(player_id)
+            rows_pitch_location.append({
+                "player_id": player_id,
+                "game_date": game_date,
+                "opponent": opponent_name_for(team_id),
+                "zone_counts": zc,
+                "vs_bats": bats,
+            })
 
     rows_game_stats = []
     for player_id, at_bats in at_bats_by_player.items():
@@ -600,7 +627,7 @@ def main():
     refs = load_supabase_refs()
     box_score_files = sorted(glob.glob(str(HERE / "box_scores" / "*.json")))
     refs = create_missing_players(box_score_files, refs, commit)
-    code_to_team_id, team_number_to_player, team_id_to_name, position_by_player = refs
+    code_to_team_id, team_number_to_player, team_id_to_name, position_by_player, bats_by_player = refs
 
     # existing (player_id, game_date) pairs already in the DB — never duplicate.
     # pitch_location_stats is insert-only (its content only depends on zone_index /
@@ -609,9 +636,11 @@ def main():
     # (e.g. a sac-bunt narrative that also matched "fielders choice" text used to
     # get mislabeled "FC" instead of "SAC") — those need their at_bats corrected
     # in place, not silently left stale.
-    existing_pls = sb_get_all("pitch_location_stats?select=id,player_id,game_date,zone_counts")
+    existing_pls = sb_get_all("pitch_location_stats?select=id,player_id,game_date,zone_counts,vs_bats")
     existing_gs = sb_get_all("game_stats?select=id,player_id,game_date,at_bats")
-    existing_pls_by_key = {(r["player_id"], r["game_date"]): r for r in existing_pls}
+    # vs_bats is part of the key so the plain (NULL) row and its two L/R splits
+    # for the same player+game don't collide with each other.
+    existing_pls_by_key = {(r["player_id"], r["game_date"], r["vs_bats"]): r for r in existing_pls}
     existing_gs_by_key = {(r["player_id"], r["game_date"]): r for r in existing_gs}
 
     total_pls, total_gs, total_skipped_pls, total_skipped_gs, total_updated_gs, total_updated_pls = 0, 0, 0, 0, 0, 0
@@ -619,14 +648,14 @@ def main():
     games_processed = 0
 
     for path in box_score_files:
-        result = process_game(path, code_to_team_id, team_number_to_player, team_id_to_name, position_by_player)
+        result = process_game(path, code_to_team_id, team_number_to_player, team_id_to_name, position_by_player, bats_by_player)
         if result is None:
             continue
         games_processed += 1
         all_unresolved |= result["unresolved_batter_ids"]
 
         for row in result["pitch_location_rows"]:
-            key = (row["player_id"], row["game_date"])
+            key = (row["player_id"], row["game_date"], row["vs_bats"])
             existing = existing_pls_by_key.get(key)
             if existing is None:
                 total_pls += 1

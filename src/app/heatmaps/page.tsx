@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
 import { getTeam, getTeamList } from "@/lib/store";
+import { englishPlayerName, englishTeamName } from "@/lib/englishNames";
 import type { Team, Player } from "@/lib/types";
-import { HitZoneHeatMap, PitchZoneHeatMap, trueAtBats } from "@/components/PlayerCharts";
+import { HitZoneHeatMap, PitchZoneHeatMap, PerspectiveToggle, filterByBats, trueAtBats } from "@/components/PlayerCharts";
 
 const DARK_CARD_BG = "#1e293b";
 const PRINT_CARD_BG = "#ffffff";
@@ -21,8 +22,16 @@ function hasAnyData(p: Player) {
   return hasHitZoneData(p) || hasPitchData(p);
 }
 
+// keeps Chinese as-is; spaces become "-" (so "_" can separate the fields) and
+// characters that aren't allowed in file names are dropped
 function safeName(s: string) {
-  return s.replace(/[\\/:*?"<>|\s]+/g, "_");
+  return s.replace(/[\\/:*?"<>|]+/g, "").trim().replace(/\s+/g, "-");
+}
+
+// Bilingual file names: 中文 and English side by side. A field whose English name is
+// unknown is simply left out rather than printed as a blank.
+function joinName(...parts: (string | number)[]) {
+  return parts.map((p) => safeName(String(p))).filter(Boolean).join("_");
 }
 
 function triggerDownload(blob: Blob, filename: string) {
@@ -36,8 +45,18 @@ function triggerDownload(blob: Blob, filename: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+function teamFileLabel(team: Team) {
+  return joinName(team.shortName ?? team.name, englishTeamName(team));
+}
+
+// e.g. 上海虎鲸_Shanghai-Orcas_60_陈冠勋_Chen-Guan-Xun_热区图_Heatmap.pdf
 function fileNameFor(team: Team, p: Player) {
-  return `${safeName(team.shortName ?? team.name)}_${p.number}_${safeName(p.name || "球员")}_热区图.pdf`;
+  return `${joinName(team.shortName ?? team.name, englishTeamName(team), p.number, p.name || "球员", englishPlayerName(team, p), "热区图", "Heatmap")}.pdf`;
+}
+
+// e.g. 上海虎鲸_Shanghai-Orcas_热区图_Heatmap.pdf
+function teamFileName(team: Team) {
+  return `${joinName(teamFileLabel(team), "热区图", "Heatmap")}.pdf`;
 }
 
 // A4 landscape, one player per page. The page is filled with the app's own dark
@@ -71,11 +90,12 @@ function addCardPage(pdf: jsPDF, dataUrl: string, isFirst: boolean, print: boole
 // The exported image is exactly this node, so anything not meant to be in the
 // picture (buttons, checkboxes) has to live outside it.
 function PlayerHeatCard({
-  player, team, print, setRef,
+  player, team, print, perspective, setRef,
 }: {
   player: Player;
   team: Team;
   print: boolean;
+  perspective: "pitcher" | "catcher" | null;
   setRef: (el: HTMLDivElement | null) => void;
 }) {
   const ink = print ? { color: "#111111" } : undefined;
@@ -88,21 +108,56 @@ function PlayerHeatCard({
   const hitBlock = hasHitZoneData(player) && (
     <div key="hit">
       <div className="text-sm font-semibold text-white mb-2" style={ink}>打击热区 Hit Zone</div>
-      <HitZoneHeatMap gameStats={player.gameStats} isPitcher={isPitcher} prominentLabels print={print} />
-    </div>
-  );
-  const pitchBlock = hasPitchData(player) && (
-    <div key="pitch">
-      <div className="text-sm font-semibold text-white mb-2" style={ink}>
-        {isPitcher ? "投球位置 Pitch Locations" : "面对来球位置 Faced Pitches"}
-      </div>
-      <PitchZoneHeatMap stats={player.pitchLocationStats} isPitcher={isPitcher} prominentLabels print={print} />
+      <HitZoneHeatMap gameStats={player.gameStats} isPitcher={isPitcher} perspective={perspective ?? undefined} prominentLabels print={print} />
     </div>
   );
 
+  // A pitcher with batter-handedness data gets vs-LHB and vs-RHB side by side instead
+  // of one filtered chart, so both are visible at once on the printed card. A count
+  // reconciliation line accounts for every thrown pitch, including the few thrown to
+  // switch hitters / unresolved batters that can't be put in either column.
+  const hasSplit = isPitcher && player.pitchLocationStats.some((s) => s.vsBats);
+  let pitchBlock: ReactNode = false;
+  if (hasSplit) {
+    const sum = (stats: typeof player.pitchLocationStats) =>
+      stats.reduce((t, s) => t + s.zoneCounts.reduce((a, b) => a + b, 0), 0);
+    const lStats = filterByBats(player.pitchLocationStats, "L");
+    const rStats = filterByBats(player.pitchLocationStats, "R");
+    const total = sum(filterByBats(player.pitchLocationStats, null));
+    const unclassified = total - sum(lStats) - sum(rStats);
+    pitchBlock = (
+      <div key="pitch">
+        <div className="text-sm font-semibold text-white mb-2" style={ink}>投球位置 Pitch Locations</div>
+        <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+          <div>
+            <div className="text-xs font-bold mb-1" style={ink}>对左打者 vs LHB</div>
+            <PitchZoneHeatMap stats={lStats} isPitcher perspective={perspective ?? undefined} prominentLabels print={print} />
+          </div>
+          <div>
+            <div className="text-xs font-bold mb-1" style={ink}>对右打者 vs RHB</div>
+            <PitchZoneHeatMap stats={rStats} isPitcher perspective={perspective ?? undefined} prominentLabels print={print} />
+          </div>
+        </div>
+        <div className="text-xs mt-2" style={print ? { color: "#333333" } : { color: "#64748b" }}>
+          共 {total} 球　=　左 {sum(lStats)} ＋ 右 {sum(rStats)}
+          {unclassified > 0 && ` ＋ 打者左右不明 ${unclassified}（未计入左右分类，仅计入总数）`}
+        </div>
+      </div>
+    );
+  } else if (hasPitchData(player)) {
+    pitchBlock = (
+      <div key="pitch">
+        <div className="text-sm font-semibold text-white mb-2" style={ink}>
+          {isPitcher ? "投球位置 Pitch Locations" : "面对来球位置 Faced Pitches"}
+        </div>
+        <PitchZoneHeatMap stats={filterByBats(player.pitchLocationStats, null)} isPitcher={isPitcher} perspective={perspective ?? undefined} prominentLabels print={print} />
+      </div>
+    );
+  }
+
   return (
     <div ref={setRef} style={{
-      width: 720, background: print ? PRINT_CARD_BG : DARK_CARD_BG, padding: 20, borderRadius: 12,
+      width: hasSplit ? 1000 : 720, background: print ? PRINT_CARD_BG : DARK_CARD_BG, padding: 20, borderRadius: 12,
       ...(print ? { border: "1px solid #999999" } : {}),
     }}>
       <div className="flex items-baseline gap-3 flex-wrap mb-4">
@@ -115,7 +170,7 @@ function PlayerHeatCard({
           </span>
         )}
       </div>
-      <div style={{ display: "flex", gap: 32, alignItems: "flex-start" }}>
+      <div style={{ display: "flex", gap: 32, alignItems: "flex-start", flexWrap: "wrap" }}>
         {isPitcher ? [pitchBlock, hitBlock] : [hitBlock, pitchBlock]}
       </div>
     </div>
@@ -132,6 +187,9 @@ export default function HeatmapExportPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [progress, setProgress] = useState("");
   const [printMode, setPrintMode] = useState(true); // default: black & white, printer-friendly
+  // null = auto per player (pitcher's own view for a pitcher, catcher's view otherwise);
+  // set to one value to apply it to every exported card, regardless of position.
+  const [perspective, setPerspective] = useState<"pitcher" | "catcher" | null>(null);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
@@ -156,6 +214,7 @@ export default function HeatmapExportPage() {
     });
     return () => { stale = true; };
   }, [teamId]);
+
   const players = useMemo(
     () => [...(team?.players ?? [])].sort((a, b) => Number(a.number) - Number(b.number)),
     [team],
@@ -208,7 +267,7 @@ export default function HeatmapExportPage() {
         setProgress(`${i + 1}/${selectedPlayers.length}`);
         addCardPage(pdf, await renderCard(selectedPlayers[i].id), i === 0, printMode);
       }
-      triggerDownload(pdf.output("blob"), `${safeName(team.shortName ?? team.name)}_热区图.pdf`);
+      triggerDownload(pdf.output("blob"), teamFileName(team));
     } catch (e) {
       console.error(e);
       alert("导出失败，请重试");
@@ -250,7 +309,9 @@ export default function HeatmapExportPage() {
                 <span className="text-xs ml-2" style={{ color: "#64748b" }}>
                   已选 {selectedPlayers.length} / {players.length}
                 </span>
-                <div className="ml-auto flex rounded-lg overflow-hidden" style={{ border: "1px solid #334155" }}>
+                <span className="text-xs ml-auto" style={{ color: "#64748b" }}>视角</span>
+                <PerspectiveToggle value={perspective} onChange={setPerspective} />
+                <div className="flex rounded-lg overflow-hidden" style={{ border: "1px solid #334155" }}>
                   <button className="text-sm px-3 py-2" onClick={() => setPrintMode(true)}
                     style={{ background: printMode ? "#22c55e" : "transparent", color: printMode ? "#0f172a" : "#94a3b8", fontWeight: 500 }}>
                     黑白打印版
@@ -297,7 +358,7 @@ export default function HeatmapExportPage() {
           <div className="flex flex-wrap gap-6">
             {selectedPlayers.map((p) => (
               <div key={p.id}>
-                <PlayerHeatCard player={p} team={team} print={printMode} setRef={(el) => { cardRefs.current[p.id] = el; }} />
+                <PlayerHeatCard player={p} team={team} print={printMode} perspective={perspective} setRef={(el) => { cardRefs.current[p.id] = el; }} />
                 <div className="mt-2 text-right">
                   <button className="btn btn-ghost text-sm" disabled={busy !== null} onClick={() => downloadOne(p)}>
                     {busy === p.id ? "导出中..." : "下载 PDF"}
