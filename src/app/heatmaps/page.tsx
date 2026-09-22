@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
-import { getTeams } from "@/lib/store";
+import { getTeam, getTeamList } from "@/lib/store";
 import type { Team, Player } from "@/lib/types";
 import { HitZoneHeatMap, PitchZoneHeatMap, trueAtBats } from "@/components/PlayerCharts";
 
@@ -126,6 +126,8 @@ export default function HeatmapExportPage() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [teamId, setTeamId] = useState("");
+  const [team, setTeam] = useState<Team | null>(null); // the selected team, with its stats
+  const [teamLoading, setTeamLoading] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState<string | null>(null);
   const [progress, setProgress] = useState("");
@@ -133,7 +135,7 @@ export default function HeatmapExportPage() {
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
-    getTeams().then((t) => {
+    getTeamList().then((t) => {
       setTeams(t);
       setLoading(false);
       const home = t.find((x) => x.name.includes("上海") || (x.shortName ?? "").includes("上海"));
@@ -141,7 +143,19 @@ export default function HeatmapExportPage() {
     });
   }, []);
 
-  const team = teams.find((t) => t.id === teamId) ?? null;
+  // Only the selected team's stats are fetched, so the page stays fast and far under the row cap.
+  useEffect(() => {
+    setTeam(null);
+    if (!teamId) return;
+    let stale = false;
+    setTeamLoading(true);
+    getTeam(teamId).then((t) => {
+      if (stale) return;
+      setTeam(t);
+      setTeamLoading(false);
+    });
+    return () => { stale = true; };
+  }, [teamId]);
   const players = useMemo(
     () => [...(team?.players ?? [])].sort((a, b) => Number(a.number) - Number(b.number)),
     [team],
@@ -225,6 +239,7 @@ export default function HeatmapExportPage() {
             {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
 
+          {teamId && teamLoading && <p className="text-sm" style={{ color: "#64748b" }}>加载球员数据...</p>}
           {team && (
             <>
               <div className="flex flex-wrap items-center gap-2 mb-3">

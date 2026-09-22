@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getTeams, initDefaultTeams } from "@/lib/store";
+import { getTeamList, initDefaultTeams } from "@/lib/store";
 import type { Team } from "@/lib/types";
 
 export default function HomePage() {
@@ -10,7 +10,7 @@ export default function HomePage() {
 
   useEffect(() => {
     initDefaultTeams();
-    getTeams().then(setTeams);
+    getTeamList().then(setTeams);
   }, []);
 
   const filtered = teams.filter((t) =>

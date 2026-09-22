@@ -72,47 +72,57 @@ function rowToPitchLocationStat(row: any): PitchLocationStat {
   };
 }
 
+// ─── Paged reads ─────────────────────────────────────────────────────────────
+
+// PostgREST returns at most 1000 rows per request and does NOT say it truncated, so a
+// plain select() silently loses everything past row 1000 (game_stats / pitch_location_stats
+// pass that once a season is imported). Read in pages until a short page comes back.
+const PAGE_SIZE = 1000;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function selectAll(table: string, orderBy: string, filter?: (q: any) => any): Promise<any[]> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rows: any[] = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    let q = db.from(table).select("*");
+    if (filter) q = filter(q);
+    // "id" as a tiebreaker keeps page boundaries stable when timestamps collide
+    const { data, error } = await q.order(orderBy).order("id").range(from, from + PAGE_SIZE - 1);
+    if (error) { console.error(`load ${table} failed:`, error.message); break; }
+    rows.push(...(data ?? []));
+    if (!data || data.length < PAGE_SIZE) break;
+  }
+  return rows;
+}
+
 // ─── Teams ───────────────────────────────────────────────────────────────────
 
-export async function getTeams(): Promise<Team[]> {
+// Teams with their rosters only — no game stats or charts (those are the bulk of the data).
+// Use getTeam(id) to load one team's full stats when it is actually needed.
+export async function getTeamList(): Promise<Team[]> {
   const { data: teamRows } = await db.from("teams").select("*").order("created_at");
   if (!teamRows?.length) return [];
 
-  const teamIds = teamRows.map((t) => t.id);
-  const [{ data: playerRows }, { data: statRows }, { data: chartRows }, { data: plsRows }] = await Promise.all([
-    db.from("players").select("*").in("team_id", teamIds).order("created_at"),
-    db.from("game_stats").select("*").order("uploaded_at"),
-    db.from("chart_files").select("*").order("uploaded_at"),
-    db.from("pitch_location_stats").select("*").order("created_at"),
-  ]);
-
-  return teamRows.map((t) => {
-    const players = (playerRows ?? [])
-      .filter((p) => p.team_id === t.id)
-      .map((p) => {
-        const stats  = (statRows ?? []).filter((s) => s.player_id === p.id).map(rowToGameStat);
-        const charts = (chartRows ?? []).filter((c) => c.player_id === p.id).map(rowToChartFile);
-        const pls    = (plsRows ?? []).filter((r) => r.player_id === p.id).map(rowToPitchLocationStat);
-        return rowToPlayer(p, stats, charts, pls);
-      });
-    return rowToTeam(t, players);
-  });
+  const playerRows = await selectAll("players", "created_at", (q) => q.in("team_id", teamRows.map((t) => t.id)));
+  return teamRows.map((t) =>
+    rowToTeam(t, playerRows.filter((p) => p.team_id === t.id).map((p) => rowToPlayer(p))),
+  );
 }
 
 export async function getTeam(id: string): Promise<Team | null> {
   const { data: t } = await db.from("teams").select("*").eq("id", id).single();
   if (!t) return null;
 
-  const { data: playerRows } = await db.from("players").select("*").eq("team_id", id).order("created_at");
-  const playerIds = (playerRows ?? []).map((p) => p.id);
+  const playerRows = await selectAll("players", "created_at", (q) => q.eq("team_id", id));
+  const playerIds = playerRows.map((p) => p.id);
 
-  const [{ data: statRows }, { data: chartRows }, { data: plsRows }] = playerIds.length
+  const [statRows, chartRows, plsRows] = playerIds.length
     ? await Promise.all([
-        db.from("game_stats").select("*").in("player_id", playerIds).order("uploaded_at"),
-        db.from("chart_files").select("*").in("player_id", playerIds).order("uploaded_at"),
-        db.from("pitch_location_stats").select("*").in("player_id", playerIds).order("created_at"),
+        selectAll("game_stats", "uploaded_at", (q) => q.in("player_id", playerIds)),
+        selectAll("chart_files", "uploaded_at", (q) => q.in("player_id", playerIds)),
+        selectAll("pitch_location_stats", "created_at", (q) => q.in("player_id", playerIds)),
       ])
-    : [{ data: [] }, { data: [] }, { data: [] }];
+    : [[], [], []];
 
   const players = (playerRows ?? []).map((p) => {
     const stats  = (statRows  ?? []).filter((s) => s.player_id === p.id).map(rowToGameStat);

@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { getTeams, createTeam, addPlayer, addChart } from "@/lib/store";
+import { getTeamList, createTeam, addPlayer, addChart } from "@/lib/store";
 import { saveFile } from "@/lib/db";
 import type { Team, Player, ChartType, Position } from "@/lib/types";
 import { CHART_TYPE_LABELS, CHART_TYPE_EN, POSITIONS } from "@/lib/types";
@@ -51,7 +51,7 @@ function UploadPage() {
   const [newPlayerPos, setNewPlayerPos] = useState<Position>("P");
 
   async function reload() {
-    const t = await getTeams();
+    const t = await getTeamList();
     setTeams(t);
     return t;
   }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getTeams } from "@/lib/store";
+import { getTeam, getTeamList } from "@/lib/store";
 import type { Team, Player } from "@/lib/types";
 import { isHitResult, trueAtBats } from "@/components/PlayerCharts";
 
@@ -198,6 +198,18 @@ function AnalysisPanel({ team, lineup, pitcherId }: { team: Team | null; lineup:
   );
 }
 
+function useTeamWithStats(teamId: string): Team | null {
+  const [loaded, setLoaded] = useState<Team | null>(null);
+  useEffect(() => {
+    setLoaded(null);
+    if (!teamId) return;
+    let stale = false;
+    getTeam(teamId).then((t) => { if (!stale) setLoaded(t); });
+    return () => { stale = true; };
+  }, [teamId]);
+  return loaded;
+}
+
 export default function MatchupPage() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
@@ -210,7 +222,7 @@ export default function MatchupPage() {
   const [pitcherB, setPitcherB] = useState("");
 
   useEffect(() => {
-    getTeams().then((t) => {
+    getTeamList().then((t) => {
       setTeams(t);
       setLoading(false);
       const home = t.find((x) => x.name.includes("上海") || (x.shortName ?? "").includes("上海"));
@@ -218,8 +230,9 @@ export default function MatchupPage() {
     });
   }, []);
 
-  const teamA = teams.find((t) => t.id === teamAId) ?? null;
-  const teamB = teams.find((t) => t.id === teamBId) ?? null;
+  // Full stats are loaded only for the two selected teams.
+  const teamA = useTeamWithStats(teamAId);
+  const teamB = useTeamWithStats(teamBId);
 
   function setLineupSlot(side: "A" | "B", i: number, playerId: string) {
     const setter = side === "A" ? setLineupA : setLineupB;
