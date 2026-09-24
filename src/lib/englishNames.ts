@@ -12,21 +12,21 @@ export function englishTeamName(team: Team): string {
   return (namesEn.teams as Record<string, string>)[teamCode(team)] ?? "";
 }
 
-// Spelled like the official site: family name first (the site prints it in bold), then the given names.
-export interface EnglishNameParts { family: string; given: string }
+// The name is spelled as in the league's 40-man list; `family` is the stretch of it the
+// official site prints in bold (the family name), absent when it can't be told.
+export interface EnglishNameParts { name: string; family?: string }
 
 export function englishPlayerParts(team: Team, player: Player): EnglishNameParts | null {
   const key = `${teamCode(team)}-${parseInt(player.number, 10)}`;
   return (namesEn.players as Record<string, EnglishNameParts>)[key] ?? null;
 }
 
-// "Chen Guan-Xun" — plain text (file names, dropdown options, search). "" when unknown.
+// "Chen Guan Xun" — plain text (file names, dropdown options, search). "" when unknown.
 export function englishPlayerName(team: Team, player: Player): string {
-  const p = englishPlayerParts(team, player);
-  return p ? `${p.family} ${p.given}`.trim() : "";
+  return englishPlayerParts(team, player)?.name ?? "";
 }
 
-// "陈冠勋 Chen Guan-Xun" — Chinese name followed by the English one (left out when unknown).
+// "陈冠勋 Chen Guan Xun" — Chinese name followed by the English one (left out when unknown).
 export function bilingualName(team: Team, player: Player): string {
   const en = englishPlayerName(team, player);
   return `${player.name || (en ? "" : "?")}${player.name && en ? " " : ""}${en}`;
