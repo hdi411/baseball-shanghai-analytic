@@ -133,18 +133,18 @@ function PlayerHeatCard({
     pitchBlock = (
       <div key="pitch">
         <div className="text-sm font-semibold text-white mb-2" style={ink}>投球位置 Pitch Locations</div>
-        <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-          <div>
-            <div className="text-xs font-bold mb-1" style={ink}>对左打者 vs LHB</div>
-            <PitchZoneHeatMap stats={lStats} isPitcher perspective={perspective ?? undefined} batterHand="L" prominentLabels print={print} />
-          </div>
+        <div style={{ display: "flex", gap: 120, flexWrap: "wrap" }}>
           <div>
             <div className="text-xs font-bold mb-1" style={ink}>对右打者 vs RHB</div>
             <PitchZoneHeatMap stats={rStats} isPitcher perspective={perspective ?? undefined} batterHand="R" prominentLabels print={print} />
           </div>
+          <div>
+            <div className="text-xs font-bold mb-1" style={ink}>对左打者 vs LHB</div>
+            <PitchZoneHeatMap stats={lStats} isPitcher perspective={perspective ?? undefined} batterHand="L" prominentLabels print={print} />
+          </div>
         </div>
         <div className="text-xs mt-2" style={print ? { color: "#333333" } : { color: "#64748b" }}>
-          共 {total} 球　=　左 {sum(lStats)} ＋ 右 {sum(rStats)}
+          共 {total} 球　=　右 {sum(rStats)} ＋ 左 {sum(lStats)}
           {unclassified > 0 && ` ＋ 打者左右不明 ${unclassified}（未计入左右分类，仅计入总数）`}
         </div>
       </div>
@@ -162,7 +162,7 @@ function PlayerHeatCard({
 
   return (
     <div ref={setRef} style={{
-      width: hasSplit ? 1000 : 720, background: print ? PRINT_CARD_BG : DARK_CARD_BG, padding: 20, borderRadius: 12,
+      width: hasSplit ? 900 : 720, background: print ? PRINT_CARD_BG : DARK_CARD_BG, padding: 20, borderRadius: 12,
       ...(print ? { border: "1px solid #999999" } : {}),
     }}>
       <div className="flex items-baseline gap-3 flex-wrap mb-4">

@@ -65,20 +65,18 @@ export function PitchZoneHeatMap({ stats, isPitcher, perspective, batterHand, pr
   }
   const maxCount = Math.max(...totals, 1);
   const prominent = prominentLabels || print;
-  const colLabels = prominent
-    ? (mirror ? ["内角", "", "", "", "外角"] : ["外角", "", "", "", "内角"])
-    : (mirror ? ["内", "", "", "", "外"] : ["外", "", "", "", "内"]);
+  const colLabels = mirror ? ["In", "", "", "", "Out"] : ["Out", "", "", "", "In"];
   const axisLabelClass = print ? "text-sm font-bold" : prominent ? "text-sm font-semibold text-slate-100" : "text-xs text-gray-400";
   const axisStyle = print ? { color: PRINT_INK } : undefined;
-  const rowLabels = ["高", "", "", "", "低"];
-  const perspectiveLabel = (mirror ? "← 内角　　　外角 →" : "← 外角　　　内角 →") + (pitcherView ? "（投手视角）" : "（捕手视角）");
+  const rowLabels = ["High", "", "", "", "Low"];
+  const perspectiveLabel = (mirror ? "← In　　　Out →" : "← Out　　　In →") + (pitcherView ? "（投手视角）" : "（捕手视角）");
 
   return (
     <div>
       <div className="flex items-start gap-4">
         <div className="flex flex-col justify-around" style={{ height: 250 }}>
           {rowLabels.map((l, i) => (
-            <span key={i} className={`${axisLabelClass} ${prominent ? "w-5" : "w-4"} text-right`} style={axisStyle}>{l}</span>
+            <span key={i} className={`${axisLabelClass} w-9 text-right`} style={axisStyle}>{l}</span>
           ))}
         </div>
         <div>
@@ -305,20 +303,18 @@ export function HitZoneHeatMap({ gameStats, isPitcher, perspective, batterHand, 
   const hitRates = zoneTotals.map((t, i) => (t > 0 ? zoneHits[i] / t : 0));
   const maxRate  = Math.max(...hitRates, 0.01);
   const prominent = prominentLabels || print;
-  const colLabels = prominent
-    ? (mirror ? ["内角", "", "", "", "外角"] : ["外角", "", "", "", "内角"])
-    : (mirror ? ["内", "", "", "", "外"] : ["外", "", "", "", "内"]);
+  const colLabels = mirror ? ["In", "", "", "", "Out"] : ["Out", "", "", "", "In"];
   const axisLabelClass = print ? "text-sm font-bold" : prominent ? "text-sm font-semibold text-slate-100" : "text-xs text-gray-400";
   const axisStyle = print ? { color: PRINT_INK } : undefined;
-  const rowLabels = ["高", "", "", "", "低"];
-  const perspectiveLabel = (mirror ? "← 内角　　　外角 →" : "← 外角　　　内角 →") + (pitcherView ? "（投手视角）" : "（捕手视角）");
+  const rowLabels = ["High", "", "", "", "Low"];
+  const perspectiveLabel = (mirror ? "← In　　　Out →" : "← Out　　　In →") + (pitcherView ? "（投手视角）" : "（捕手视角）");
 
   return (
     <div>
       <div className="flex items-start gap-4">
         <div className="flex flex-col justify-around" style={{ height: 250 }}>
           {rowLabels.map((l, i) => (
-            <span key={i} className={`${axisLabelClass} ${prominent ? "w-5" : "w-4"} text-right`} style={axisStyle}>{l}</span>
+            <span key={i} className={`${axisLabelClass} w-9 text-right`} style={axisStyle}>{l}</span>
           ))}
         </div>
         <div>
