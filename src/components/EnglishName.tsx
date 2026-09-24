@@ -10,14 +10,21 @@ export function EnglishName({ team, player, className, style }: {
 }) {
   const p = englishPlayerParts(team, player);
   if (!p) return null;
-  // split around the bold (family) stretch, wherever it sits in the name
-  const at = p.family ? p.name.indexOf(p.family) : -1;
-  const before = at > 0 ? p.name.slice(0, at) : "";
-  const bold = at >= 0 && p.family ? p.family : "";
-  const after = at >= 0 && p.family ? p.name.slice(at + p.family.length) : p.name;
+  // cut the name into plain / bold pieces; each bold stretch is searched for after the previous one
+  const bolds = p.family ? (Array.isArray(p.family) ? p.family : [p.family]) : [];
+  const pieces: { text: string; bold: boolean }[] = [];
+  let pos = 0;
+  for (const b of bolds) {
+    const at = p.name.indexOf(b, pos);
+    if (at < 0) continue;
+    if (at > pos) pieces.push({ text: p.name.slice(pos, at), bold: false });
+    pieces.push({ text: b, bold: true });
+    pos = at + b.length;
+  }
+  if (pos < p.name.length) pieces.push({ text: p.name.slice(pos), bold: false });
   return (
     <span className={className} style={{ fontWeight: 400, ...style }}>
-      {before}{bold && <strong style={{ fontWeight: 700 }}>{bold}</strong>}{after}
+      {pieces.map((x, i) => x.bold ? <strong key={i} style={{ fontWeight: 700 }}>{x.text}</strong> : x.text)}
     </span>
   );
 }

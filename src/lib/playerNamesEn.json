@@ -550,7 +550,7 @@
    "name": "Denzel Rinaldo Richardson"
   },
   "SHO-38": {
-   "family": "Rintaro",
+   "family": "Hirama",
    "name": "Hirama Rintaro"
   },
   "SHO-5": {
@@ -594,7 +594,7 @@
    "name": "Wilmer Manuel Perez Ramirez"
   },
   "SHO-69": {
-   "family": "Shuto",
+   "family": "Sakurai",
    "name": "Sakurai Shuto"
   },
   "SHO-7": {
@@ -608,7 +608,10 @@
    "name": "Pa Chi Ta Lu Ni Ka Erh"
   },
   "SHO-90": {
-   "family": "Henry Alexander",
+   "family": [
+    "Urrutia",
+    "Henry"
+   ],
    "name": "Urrutia Rodriguez Henry Alexander"
   },
   "SHO-91": {
@@ -920,7 +923,7 @@
    "name": "Huang Kunhao"
   },
   "XMD-9": {
-   "family": "Eduardo Marquez Quintero",
+   "family": "Marquez Quintero",
    "name": "Emilio Eduardo Marquez Quintero"
   },
   "XMD-99": {

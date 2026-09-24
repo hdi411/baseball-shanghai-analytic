@@ -1,6 +1,25 @@
 {
+ "SHO-38": {
+  "family": "Hirama",
+  "name": "Hirama Rintaro"
+ },
  "SHO-5": {
   "family": "Martinez",
   "name": "Emerson Rafael Martinez Franco"
+ },
+ "SHO-69": {
+  "family": "Sakurai",
+  "name": "Sakurai Shuto"
+ },
+ "SHO-90": {
+  "family": [
+   "Urrutia",
+   "Henry"
+  ],
+  "name": "Urrutia Rodriguez Henry Alexander"
+ },
+ "XMD-9": {
+  "family": "Marquez Quintero",
+  "name": "Emilio Eduardo Marquez Quintero"
  }
 }

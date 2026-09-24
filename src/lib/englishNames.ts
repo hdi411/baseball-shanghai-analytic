@@ -13,8 +13,9 @@ export function englishTeamName(team: Team): string {
 }
 
 // The name is spelled as in the league's 40-man list; `family` is the stretch of it the
-// official site prints in bold (the family name), absent when it can't be told.
-export interface EnglishNameParts { name: string; family?: string }
+// official site prints in bold (the family name), absent when it can't be told. A hand-fixed
+// entry may list several stretches, e.g. ["Urrutia", "Henry"] for "U. Henry".
+export interface EnglishNameParts { name: string; family?: string | string[] }
 
 export function englishPlayerParts(team: Team, player: Player): EnglishNameParts | null {
   const key = `${teamCode(team)}-${parseInt(player.number, 10)}`;
