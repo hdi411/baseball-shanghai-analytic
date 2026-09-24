@@ -1,240 +1,945 @@
 {
  "players": {
-  "BJL-0": "Liu Zhongxun",
-  "BJL-12": "Jonathan Aldair Arauz Morales",
-  "BJL-13": "Xiang Yu",
-  "BJL-16": "Fher Cejas Perez",
-  "BJL-17": "Wu Haizheng",
-  "BJL-18": "Raico Santos Almeida",
-  "BJL-19": "He Ching",
-  "BJL-2": "Duojie Gengzhi",
-  "BJL-21": "Andi Yaniel Cosme Oliva",
-  "BJL-22": "Zhuo Linkai",
-  "BJL-28": "Ronaiker Ricardo Palma Rodriguez",
-  "BJL-29": "Zhao Lun",
-  "BJL-31": "Irving Rene Ortega Taveras",
-  "BJL-35": "Frank Ernesto Herrera Camejo",
-  "BJL-36": "He Fumin",
-  "BJL-37": "Carlos Jose Teller De Leon",
-  "BJL-4": "Dong Yuefeng",
-  "BJL-42": "Yankiel Mauris Gutierrez",
-  "BJL-44": "Xiang Lang",
-  "BJL-45": "Alfredo Despaigne Rodriguez",
-  "BJL-46": "Rober Jose Colina Molina",
-  "BJL-47": "Chang Yu-Cheng",
-  "BJL-48": "Huadan Zhaxi",
-  "BJL-5": "Francisco Jose Martinez Garcia",
-  "BJL-53": "Yen Tzu-Chien",
-  "BJL-56": "Ding Shutong",
-  "BJL-57": "Francisco Javier Carrillo Briceno",
-  "BJL-6": "Luis Miguel Romero Mansfarroll",
-  "BJL-66": "Wu Haoran",
-  "BJL-67": "Lin Pei-Tsun",
-  "BJL-68": "Luo Jinjun",
-  "BJL-69": "Huang Chen-Wei",
-  "BJL-7": "Yao En-Dou",
-  "BJL-72": "Williander Jose Moreno Gomez",
-  "BJL-8": "Yoel Yanqui Vera",
-  "BJL-9": "Hou Maoyue",
-  "BJL-92": "Luis Carlos Jose Arejula Regalado",
-  "BJL-99": "Chen Jiaji",
-  "CSW-0": "Lee Po-Cheng",
-  "CSW-1": "Gu Sheng Yu",
-  "CSW-11": "Li Heyuan",
-  "CSW-13": "Wan Macairang",
-  "CSW-14": "Liang Xintong",
-  "CSW-15": "Chen Sheng-Wu",
-  "CSW-19": "Lv Boyuan",
-  "CSW-20": "Jing Pengwei",
-  "CSW-21": "Meng Chao",
-  "CSW-22": "Lin Qiang",
-  "CSW-23": "Yang Yanyong",
-  "CSW-24": "Zheng Chenggong",
-  "CSW-25": "Yang Hao-Jhe",
-  "CSW-27": "Zhao Weitian",
-  "CSW-28": "Mehren Christopher-Grant",
-  "CSW-29": "Huang Hung-Yi",
-  "CSW-3": "Peng Zhixiong",
-  "CSW-31": "Wang Xingyu",
-  "CSW-32": "Tseng Yu-En",
-  "CSW-33": "Li Sheng-Zi",
-  "CSW-34": "Zhang Zibo",
-  "CSW-41": "Kao Chen-Hsuan",
-  "CSW-45": "Bai Langcheng",
-  "CSW-46": "Fang Ko-Wei",
-  "CSW-48": "Hsu Yun-Yi",
-  "CSW-51": "Chu Chien-Pin",
-  "CSW-55": "Wang Shih-Tsung",
-  "CSW-56": "Sang Yang",
-  "CSW-58": "Qiang Barenzeng",
-  "CSW-68": "Feng Qiang",
-  "CSW-7": "Zhang Qinyang",
-  "CSW-72": "Lin Tien-Hao",
-  "CSW-77": "Huadan Cairang",
-  "CSW-80": "Feng Shaojie",
-  "CSW-86": "Yu Zihao",
-  "CSW-87": "Lin Dan-Sheng",
-  "CSW-88": "Han Jie",
-  "CSW-89": "LI Yuyang",
-  "CSW-9": "Lin Huang-Yin",
-  "CSW-98": "Liu Chan-Chia",
-  "CSW-99": "Liu Wenlong",
-  "FZS-0": "Chen Chia-Wei",
-  "FZS-16": "Cheng Jiaxing",
-  "FZS-2": "Huang Zhangxin",
-  "FZS-21": "Dylan Chowles Unsworth",
-  "FZS-22": "Wan Chao-Ching",
-  "FZS-24": "Lin Yi-Hsiang",
-  "FZS-25": "Liang Zhenghua",
-  "FZS-29": "Chen Yu-Syuan",
-  "FZS-3": "Kuo Chun-Wei",
-  "FZS-30": "Lv Xiuxin",
-  "FZS-31": "Pan Wenxuan",
-  "FZS-32": "Chen Gaobing",
-  "FZS-33": "Huang Bo-Wei",
-  "FZS-35": "Chen Jiale",
-  "FZS-39": "Lai Sheng-Fong",
-  "FZS-40": "Tsang Kin-Nam",
-  "FZS-44": "Hu Chun-Yen",
-  "FZS-47": "Lin Ken",
-  "FZS-48": "Chang Tsung-Wei",
-  "FZS-49": "Chiang Yu-Hung",
-  "FZS-5": "Thomas Edward Green",
-  "FZS-53": "Tim Fischer",
-  "FZS-54": "Yang Mo",
-  "FZS-55": "Tsai Tsung-Hsiu",
-  "FZS-57": "Liu Dalu",
-  "FZS-6": "George Kenta Callil",
-  "FZS-65": "Hsieh Yi",
-  "FZS-68": "Yi Shuai",
-  "FZS-69": "Lo Yun-Hsu",
-  "FZS-71": "Kuo Shih-Yu",
-  "FZS-77": "Lu Xinyi",
-  "FZS-8": "Zhan Shangyu",
-  "FZS-83": "Wu Changyan",
-  "FZS-9": "Chou Heng-Jui",
-  "FZS-91": "Hung Chen-Yu",
-  "FZS-93": "Jiang Yujin",
-  "FZS-99": "Lee Hao-Sheng",
-  "SHO-1": "KANG Maeseong",
-  "SHO-10": "Xing Wenbin",
-  "SHO-11": "Li Jianye",
-  "SHO-12": "Lee Jaemin",
-  "SHO-13": "Ni Xinze",
-  "SHO-15": "KOOK Haeseong",
-  "SHO-16": "Kim Junsang",
-  "SHO-17": "Franklyn Kilome Peralta",
-  "SHO-18": "Angel Yefrey Macuare Cabrera",
-  "SHO-19": "Kim Euijun",
-  "SHO-20": "CHEN Hong-Zhi",
-  "SHO-21": "Edgar Antonio Isea Brito",
-  "SHO-22": "Kim Seok Hoon",
-  "SHO-23": "Zhang Wentao",
-  "SHO-26": "Tu Jialun",
-  "SHO-27": "Huang Nien Yu",
-  "SHO-28": "Lin Yujun",
-  "SHO-29": "Diego Andres Infante Hernandez",
-  "SHO-3": "Hao Jiaqi",
-  "SHO-30": "OH Doyong",
-  "SHO-31": "Wang Bin",
-  "SHO-35": "Yang Shengao",
-  "SHO-37": "Denzel Rinaldo Richardson",
-  "SHO-38": "Hirama Rintaro",
-  "SHO-5": "Emerson Rafael Martinez Franco",
-  "SHO-51": "Kou Yongkang",
-  "SHO-53": "Kim Gwanwoo",
-  "SHO-55": "Jang Wonho",
-  "SHO-58": "Lin Ziqiang",
-  "SHO-6": "Yu Sangpin",
-  "SHO-60": "Chen Guan Xun",
-  "SHO-62": "Ji San",
-  "SHO-65": "Mai Zhengwen",
-  "SHO-68": "Wilmer Manuel Perez Ramirez",
-  "SHO-69": "Sakurai Shuto",
-  "SHO-7": "Yang Jin",
-  "SHO-87": "FRANCO Enderson",
-  "SHO-89": "Pa Chi Ta Lu Ni Ka Erh",
-  "SHO-90": "Urrutia Rodriguez Henry Alexander",
-  "SHO-91": "Braulio Vasquez Morel",
-  "SHO-92": "Jesus Miguel Vargas Rangel",
-  "SHO-99": "HONG Wonbin",
-  "SZB-0": "Mallex Lydell Smith",
-  "SZB-1": "Lord Aragorn de Vera",
-  "SZB-10": "Kade Walker Scott Kozak",
-  "SZB-12": "David Mathew Reckers",
-  "SZB-13": "Ma Junyi",
-  "SZB-14": "Wu Qirui",
-  "SZB-15": "Kobayashi Ayura",
-  "SZB-16": "Brenden Michael Morris",
-  "SZB-18": "Jhang Fu-Yuan",
-  "SZB-2": "Dante Jalal Leach",
-  "SZB-22": "Lu Yi",
-  "SZB-23": "Zheng Zijian",
-  "SZB-24": "Landon Kenneth Wallace",
-  "SZB-25": "Andrew John Guardino",
-  "SZB-27": "Wang Jia Zhong",
-  "SZB-3": "Delino Diaab Deshields",
-  "SZB-31": "Jacob Morin",
-  "SZB-34": "Ronaldo Antonio Flores Guzman",
-  "SZB-35": "Dariel Aneudys Gomez Frias",
-  "SZB-36": "Enrique Burgos Arosemena",
-  "SZB-37": "Alan Zhang Carter",
-  "SZB-40": "Yu Hsin-Chun",
-  "SZB-47": "He Xin",
-  "SZB-52": "Zhang Weixing",
-  "SZB-55": "Fan Yichuan",
-  "SZB-57": "Wang Shuaizu",
-  "SZB-60": "Song Jiaqi",
-  "SZB-61": "Zhang Haonan",
-  "SZB-66": "Luo Beixing",
-  "SZB-7": "Shi Hongfei",
-  "SZB-75": "Wu Junhao",
-  "SZB-8": "Felix Bladimil Cabrera Baez",
-  "SZB-80": "Wang Yang",
-  "SZB-88": "Dany Gilbert Kiti Toussaint",
-  "SZB-9": "Shan Chengting",
-  "SZB-96": "Liu Wenjie",
-  "SZB-97": "Wang Peng-Fei",
-  "SZB-99": "Liu Chia-Wei",
-  "XMD-0": "Wang Ziqi",
-  "XMD-1": "Lin Po-Yi",
-  "XMD-11": "Iwasaki Yuta",
-  "XMD-12": "Yeury Gervacio Moscoso",
-  "XMD-13": "Chen Luo-Yang",
-  "XMD-14": "Andy Vargas Lescaille",
-  "XMD-15": "Yi Jian",
-  "XMD-16": "Kevin Bryan Sanchez Marte",
-  "XMD-17": "Ninomiya Isaki",
-  "XMD-18": "Kelvin Oswaldo Melean Perez",
-  "XMD-20": "Yang Hao-Jan",
-  "XMD-27": "Zhang Aiqi",
-  "XMD-3": "Yang Lixuan",
-  "XMD-31": "Pavel Hernandez Bruce",
-  "XMD-32": "Chung Kuo-Hua",
-  "XMD-33": "Lee Jen-Hao",
-  "XMD-35": "Kimoto Takumi",
-  "XMD-36": "Hsu Zi-Shen",
-  "XMD-39": "Hu Jia-Long",
-  "XMD-43": "Pan Chen-Yu",
-  "XMD-44": "Wang Wei-Chen",
-  "XMD-45": "Henry Henry Montas",
-  "XMD-47": "Huang Yung-Chuan",
-  "XMD-50": "Kang San",
-  "XMD-51": "Yasiel Andy Gonzalez Garcia",
-  "XMD-52": "Su Yongquan",
-  "XMD-55": "Suzuki Ren",
-  "XMD-56": "DUEÑAS MORE Armando Addiel",
-  "XMD-58": "Tailon Sanchezdiaz",
-  "XMD-68": "Wang Jun",
-  "XMD-69": "Su Chieh-En",
-  "XMD-7": "Jose Amaury Norona Gandara",
-  "XMD-70": "Teoh Xi-Kai",
-  "XMD-71": "Lu Yun",
-  "XMD-73": "Li Chia-Hsiang",
-  "XMD-78": "Watanabe Aki",
-  "XMD-8": "Huang Kunhao",
-  "XMD-9": "Emilio Eduardo Marquez Quintero",
-  "XMD-99": "Hu Mengkui"
+  "BJL-0": {
+   "family": "LIU",
+   "given": "Zhongxun"
+  },
+  "BJL-12": {
+   "family": "Jonathan",
+   "given": "Aldair Arauz Morales"
+  },
+  "BJL-13": {
+   "family": "XIANG",
+   "given": "Yu"
+  },
+  "BJL-16": {
+   "family": "CEJAS PEREZ",
+   "given": "Fher"
+  },
+  "BJL-17": {
+   "family": "WU",
+   "given": "Haizheng"
+  },
+  "BJL-18": {
+   "family": "SANTOS ALMEIDA",
+   "given": "Raico"
+  },
+  "BJL-19": {
+   "family": "HE",
+   "given": "Ching"
+  },
+  "BJL-2": {
+   "family": "DuoJie",
+   "given": "GengZhi"
+  },
+  "BJL-21": {
+   "family": "COSME",
+   "given": "Andi"
+  },
+  "BJL-22": {
+   "family": "ZHUO",
+   "given": "Linkai"
+  },
+  "BJL-28": {
+   "family": "RICARDO PALMA RODRIGUEZ",
+   "given": "Ronaiker"
+  },
+  "BJL-29": {
+   "family": "ZHAO",
+   "given": "Lun"
+  },
+  "BJL-31": {
+   "family": "TAVERAS IRVING RENE",
+   "given": "Ortega"
+  },
+  "BJL-35": {
+   "family": "HERRERA",
+   "given": "Frank"
+  },
+  "BJL-36": {
+   "family": "HE",
+   "given": "Fumin"
+  },
+  "BJL-37": {
+   "family": "TELLER",
+   "given": "Carlos"
+  },
+  "BJL-4": {
+   "family": "DONG",
+   "given": "Yuefeng"
+  },
+  "BJL-42": {
+   "family": "MAURIS",
+   "given": "Yankiel"
+  },
+  "BJL-44": {
+   "family": "XIANG",
+   "given": "Lang"
+  },
+  "BJL-45": {
+   "family": "DESPAIGNE",
+   "given": "Alfredo"
+  },
+  "BJL-46": {
+   "family": "JOSE COLINA MOLINA",
+   "given": "Robert"
+  },
+  "BJL-47": {
+   "family": "Chang",
+   "given": "Yu Cheng"
+  },
+  "BJL-48": {
+   "family": "Huadanzhaxi",
+   "given": "Huadanzhaxi"
+  },
+  "BJL-5": {
+   "family": "MARTINEZ GARCIA",
+   "given": "Francisco Jose"
+  },
+  "BJL-53": {
+   "family": "YEN",
+   "given": "Tzu-Chien"
+  },
+  "BJL-56": {
+   "family": "DING",
+   "given": "Shutong"
+  },
+  "BJL-57": {
+   "family": "Carrillo Briceno",
+   "given": "Francisco Javier"
+  },
+  "BJL-6": {
+   "family": "Romero",
+   "given": "Luis M."
+  },
+  "BJL-66": {
+   "family": "Wu",
+   "given": "Haoran"
+  },
+  "BJL-67": {
+   "family": "LIN",
+   "given": "Pei-Tsun"
+  },
+  "BJL-68": {
+   "family": "Luo",
+   "given": "Jinjun"
+  },
+  "BJL-69": {
+   "family": "HUANG",
+   "given": "Chen-Wei"
+  },
+  "BJL-7": {
+   "family": "YAO",
+   "given": "En-Dou - 姚恩多"
+  },
+  "BJL-72": {
+   "family": "MORENO GOMEZ",
+   "given": "WILLIANDER JOSE"
+  },
+  "BJL-8": {
+   "family": "Yanqui",
+   "given": "Yoel"
+  },
+  "BJL-9": {
+   "family": "HOU",
+   "given": "Maoyue"
+  },
+  "BJL-92": {
+   "family": "JOSE AREJULA",
+   "given": "LUIS CARLOS"
+  },
+  "BJL-99": {
+   "family": "Chen",
+   "given": "Jiaji"
+  },
+  "CSW-0": {
+   "family": "LEE",
+   "given": "Po-Cheng"
+  },
+  "CSW-1": {
+   "family": "GU",
+   "given": "Sheng-yu"
+  },
+  "CSW-11": {
+   "family": "LI",
+   "given": "Heyuan"
+  },
+  "CSW-13": {
+   "family": "Cairang",
+   "given": "Wanma"
+  },
+  "CSW-14": {
+   "family": "Liang",
+   "given": "Xintong"
+  },
+  "CSW-15": {
+   "family": "CHEN",
+   "given": "Sheng-Wu"
+  },
+  "CSW-19": {
+   "family": "LV",
+   "given": "Boyuan"
+  },
+  "CSW-20": {
+   "family": "JING",
+   "given": "Pengwei"
+  },
+  "CSW-21": {
+   "family": "Meng",
+   "given": "Chao"
+  },
+  "CSW-22": {
+   "family": "LIN",
+   "given": "Qiang"
+  },
+  "CSW-23": {
+   "family": "YANG",
+   "given": "Yanyong"
+  },
+  "CSW-24": {
+   "family": "ZHENG",
+   "given": "Chenggong"
+  },
+  "CSW-25": {
+   "family": "YANG",
+   "given": "Hao-Jhe"
+  },
+  "CSW-27": {
+   "family": "ZHAO",
+   "given": "Weitian"
+  },
+  "CSW-28": {
+   "family": "MEHREN",
+   "given": "Christopher-Grant"
+  },
+  "CSW-29": {
+   "family": "HUANG",
+   "given": "Hung-Yi"
+  },
+  "CSW-3": {
+   "family": "PENG",
+   "given": "Zhixiong"
+  },
+  "CSW-31": {
+   "family": "Wang",
+   "given": "Xingyu"
+  },
+  "CSW-32": {
+   "family": "TSENG",
+   "given": "Yu-En"
+  },
+  "CSW-33": {
+   "family": "Li",
+   "given": "Shengzi"
+  },
+  "CSW-34": {
+   "family": "Zhang",
+   "given": "Zibo"
+  },
+  "CSW-41": {
+   "family": "KAO",
+   "given": "Chen-Hsuan"
+  },
+  "CSW-45": {
+   "family": "Bai",
+   "given": "Langcheng"
+  },
+  "CSW-46": {
+   "family": "FANG",
+   "given": "Ko-Wei"
+  },
+  "CSW-48": {
+   "family": "HSU",
+   "given": "Yun-Yi"
+  },
+  "CSW-51": {
+   "family": "CHU",
+   "given": "Chien-Pin"
+  },
+  "CSW-55": {
+   "family": "WANG",
+   "given": "Shih-Tsung"
+  },
+  "CSW-56": {
+   "family": "Sang",
+   "given": "Yang"
+  },
+  "CSW-58": {
+   "family": "Renzeng",
+   "given": "Qiangba"
+  },
+  "CSW-68": {
+   "family": "Feng",
+   "given": "Qiang"
+  },
+  "CSW-7": {
+   "family": "ZHANG",
+   "given": "Qinyang"
+  },
+  "CSW-72": {
+   "family": "LIN",
+   "given": "Tien-Hao"
+  },
+  "CSW-77": {
+   "family": "Hua Dan",
+   "given": "Cai Rang"
+  },
+  "CSW-80": {
+   "family": "FENG",
+   "given": "Shaojie"
+  },
+  "CSW-86": {
+   "family": "YU",
+   "given": "Zihao"
+  },
+  "CSW-87": {
+   "family": "LIN",
+   "given": "Dan-Sheng"
+  },
+  "CSW-88": {
+   "family": "Han",
+   "given": "Jie"
+  },
+  "CSW-89": {
+   "family": "LI",
+   "given": "Yuyang"
+  },
+  "CSW-9": {
+   "family": "LIN",
+   "given": "Huang-Yin"
+  },
+  "CSW-98": {
+   "family": "LIU",
+   "given": "Chan-chia"
+  },
+  "CSW-99": {
+   "family": "LIU",
+   "given": "Wenlong"
+  },
+  "FZS-0": {
+   "family": "CHEN",
+   "given": "Chia-Wei - 陈家维"
+  },
+  "FZS-16": {
+   "family": "Cheng",
+   "given": "Jiaxing"
+  },
+  "FZS-2": {
+   "family": "HUANG",
+   "given": "Zhangxin"
+  },
+  "FZS-21": {
+   "family": "UNSWORTH",
+   "given": "Dylan"
+  },
+  "FZS-22": {
+   "family": "WAN",
+   "given": "Chao-Ching"
+  },
+  "FZS-24": {
+   "family": "LIN",
+   "given": "Yi-Hsiang"
+  },
+  "FZS-25": {
+   "family": "Zhenghua",
+   "given": "LIANG"
+  },
+  "FZS-29": {
+   "family": "CHEN",
+   "given": "Yu-Syuan - 陈育轩"
+  },
+  "FZS-3": {
+   "family": "KUO",
+   "given": "Chun-Wei"
+  },
+  "FZS-30": {
+   "family": "Lv",
+   "given": "Xiuxin"
+  },
+  "FZS-31": {
+   "family": "PAN",
+   "given": "Wenxuan"
+  },
+  "FZS-32": {
+   "family": "CHEN",
+   "given": "Gaobing"
+  },
+  "FZS-33": {
+   "family": "HUANG",
+   "given": "Bo-wei"
+  },
+  "FZS-35": {
+   "family": "CHEN",
+   "given": "Jiale"
+  },
+  "FZS-39": {
+   "family": "LAI",
+   "given": "Sheng-fong"
+  },
+  "FZS-40": {
+   "family": "TSANG",
+   "given": "Kin Nam"
+  },
+  "FZS-44": {
+   "family": "HU",
+   "given": "Chun-Yen"
+  },
+  "FZS-47": {
+   "family": "LIN",
+   "given": "Ken"
+  },
+  "FZS-48": {
+   "family": "Chang",
+   "given": "Tsung Wei"
+  },
+  "FZS-49": {
+   "family": "CHIANG",
+   "given": "Yu-Hung"
+  },
+  "FZS-5": {
+   "family": "GREEN",
+   "given": "Thomas"
+  },
+  "FZS-53": {
+   "family": "FISCHER",
+   "given": "Tim"
+  },
+  "FZS-54": {
+   "family": "Yang",
+   "given": "Mo"
+  },
+  "FZS-55": {
+   "family": "TSAI",
+   "given": "Tsung-Hsiu"
+  },
+  "FZS-57": {
+   "family": "LIU",
+   "given": "Dalu"
+  },
+  "FZS-6": {
+   "family": "CALLIL",
+   "given": "George"
+  },
+  "FZS-65": {
+   "family": "HSIEH",
+   "given": "Yi"
+  },
+  "FZS-68": {
+   "family": "Yi",
+   "given": "Shuai"
+  },
+  "FZS-69": {
+   "family": "LO",
+   "given": "Yun-Hsu"
+  },
+  "FZS-71": {
+   "family": "KUO",
+   "given": "Shih-yu"
+  },
+  "FZS-77": {
+   "family": "Lu",
+   "given": "Xinyi"
+  },
+  "FZS-8": {
+   "family": "Zhan",
+   "given": "Shangyu"
+  },
+  "FZS-83": {
+   "family": "WU",
+   "given": "Changyan"
+  },
+  "FZS-9": {
+   "family": "CHOU",
+   "given": "Heng-Jui"
+  },
+  "FZS-91": {
+   "family": "HUNG",
+   "given": "Chen-Yu"
+  },
+  "FZS-93": {
+   "family": "JIANG",
+   "given": "Yujin"
+  },
+  "FZS-99": {
+   "family": "LEE",
+   "given": "Hao-Sheng"
+  },
+  "SHO-1": {
+   "family": "KANG",
+   "given": "Maeseong"
+  },
+  "SHO-10": {
+   "family": "XING",
+   "given": "Wenbin"
+  },
+  "SHO-11": {
+   "family": "Li",
+   "given": "Jianye"
+  },
+  "SHO-12": {
+   "family": "LEE",
+   "given": "Jaemin"
+  },
+  "SHO-13": {
+   "family": "NI",
+   "given": "Xinze"
+  },
+  "SHO-15": {
+   "family": "KOOK",
+   "given": "Haeseong"
+  },
+  "SHO-16": {
+   "family": "KIM",
+   "given": "Junsang"
+  },
+  "SHO-17": {
+   "family": "KILOMÉ",
+   "given": "Franklyn"
+  },
+  "SHO-18": {
+   "family": "MACUARE CABRERA",
+   "given": "Angel Yefrey"
+  },
+  "SHO-19": {
+   "family": "KIM",
+   "given": "Euijun"
+  },
+  "SHO-20": {
+   "family": "CHEN",
+   "given": "Hong-Zhi"
+  },
+  "SHO-21": {
+   "family": "EDGAR ANTONIO",
+   "given": "Isea Brito"
+  },
+  "SHO-22": {
+   "family": "Kim",
+   "given": "Seok Hoon"
+  },
+  "SHO-23": {
+   "family": "ZHANG",
+   "given": "Wentao"
+  },
+  "SHO-26": {
+   "family": "Tu",
+   "given": "Jialun"
+  },
+  "SHO-27": {
+   "family": "HUANG",
+   "given": "Nien-Yu"
+  },
+  "SHO-28": {
+   "family": "LIN",
+   "given": "Yujun"
+  },
+  "SHO-29": {
+   "family": "INFANTE HERNANDEZ",
+   "given": "Diego Andres"
+  },
+  "SHO-3": {
+   "family": "Hao",
+   "given": "Jiaqi"
+  },
+  "SHO-30": {
+   "family": "OH",
+   "given": "Doyong"
+  },
+  "SHO-31": {
+   "family": "WANG",
+   "given": "Bin"
+  },
+  "SHO-35": {
+   "family": "Yang",
+   "given": "Shengao"
+  },
+  "SHO-37": {
+   "family": "RICHARDSON",
+   "given": "Denzel"
+  },
+  "SHO-38": {
+   "family": "Rintaro",
+   "given": "HIRAMA"
+  },
+  "SHO-5": {
+   "family": "EMERSON RAFAEL",
+   "given": "Martinez Franco"
+  },
+  "SHO-51": {
+   "family": "KOU",
+   "given": "Yongkang"
+  },
+  "SHO-53": {
+   "family": "KIM",
+   "given": "Gwanwoo"
+  },
+  "SHO-55": {
+   "family": "JANG",
+   "given": "Wonho"
+  },
+  "SHO-58": {
+   "family": "Lin",
+   "given": "Ziqiang"
+  },
+  "SHO-6": {
+   "family": "Yu",
+   "given": "Sangpin"
+  },
+  "SHO-60": {
+   "family": "Chen",
+   "given": "Guan-Xun"
+  },
+  "SHO-62": {
+   "family": "JI",
+   "given": "San"
+  },
+  "SHO-65": {
+   "family": "MAI",
+   "given": "Zhengwen"
+  },
+  "SHO-68": {
+   "family": "WILMER MANUEL",
+   "given": "Perez Ramirez"
+  },
+  "SHO-69": {
+   "family": "SHUTO",
+   "given": "Sakurai"
+  },
+  "SHO-7": {
+   "family": "Yang",
+   "given": "Jin"
+  },
+  "SHO-87": {
+   "family": "FRANCO",
+   "given": "Enderson"
+  },
+  "SHO-89": {
+   "family": "Ni-Ka-Erh",
+   "given": "Pa-Chi-Ta-Lu"
+  },
+  "SHO-90": {
+   "family": "HENRY ALEXANDER",
+   "given": "Urrutia Rodriguez"
+  },
+  "SHO-91": {
+   "family": "VASQUEZ MOREL",
+   "given": "Braulio"
+  },
+  "SHO-92": {
+   "family": "VARGAS",
+   "given": "Jesús"
+  },
+  "SHO-99": {
+   "family": "HONG",
+   "given": "Wonbin"
+  },
+  "SZB-0": {
+   "family": "SMITH",
+   "given": "Mallex"
+  },
+  "SZB-1": {
+   "family": "DE VERA",
+   "given": "Lord Aragorn"
+  },
+  "SZB-10": {
+   "family": "Kozak",
+   "given": "Kade"
+  },
+  "SZB-12": {
+   "family": "Reckers",
+   "given": "David"
+  },
+  "SZB-13": {
+   "family": "MA",
+   "given": "Junyi"
+  },
+  "SZB-14": {
+   "family": "WU",
+   "given": "Qirui - 吴启锐"
+  },
+  "SZB-15": {
+   "family": "KOBAYASHI",
+   "given": "Ayura"
+  },
+  "SZB-16": {
+   "family": "Morris",
+   "given": "Brenden"
+  },
+  "SZB-18": {
+   "family": "JHANG",
+   "given": "Fu-Yuan"
+  },
+  "SZB-2": {
+   "family": "Leach",
+   "given": "Dante"
+  },
+  "SZB-22": {
+   "family": "Lu",
+   "given": "Yi"
+  },
+  "SZB-23": {
+   "family": "ZHENG",
+   "given": "Zijian"
+  },
+  "SZB-24": {
+   "family": "Wallace",
+   "given": "Landon"
+  },
+  "SZB-25": {
+   "family": "GUARDINO",
+   "given": "Andrew"
+  },
+  "SZB-27": {
+   "family": "Wang",
+   "given": "Jiazhong"
+  },
+  "SZB-3": {
+   "family": "DESHIELDS",
+   "given": "Delino"
+  },
+  "SZB-31": {
+   "family": "MORIN",
+   "given": "Jacob"
+  },
+  "SZB-34": {
+   "family": "Flores",
+   "given": "Ronaldo"
+  },
+  "SZB-35": {
+   "family": "GOMEZ FRIAS",
+   "given": "Dariel Aneudys"
+  },
+  "SZB-36": {
+   "family": "BURGOS",
+   "given": "Enrique"
+  },
+  "SZB-37": {
+   "family": "ZHANG CARTER",
+   "given": "Alan"
+  },
+  "SZB-40": {
+   "family": "YU",
+   "given": "Hsin-Chun"
+  },
+  "SZB-47": {
+   "family": "He",
+   "given": "Xin"
+  },
+  "SZB-52": {
+   "family": "Zhang",
+   "given": "WeiXing"
+  },
+  "SZB-55": {
+   "family": "FAN",
+   "given": "Yichuan"
+  },
+  "SZB-57": {
+   "family": "Wang",
+   "given": "Shuaizu"
+  },
+  "SZB-60": {
+   "family": "Song",
+   "given": "Jia Qi"
+  },
+  "SZB-61": {
+   "family": "Haonan",
+   "given": "ZHANG"
+  },
+  "SZB-66": {
+   "family": "Luo",
+   "given": "Beixing"
+  },
+  "SZB-7": {
+   "family": "Shi",
+   "given": "Hongfei"
+  },
+  "SZB-75": {
+   "family": "Wu",
+   "given": "JunHao"
+  },
+  "SZB-8": {
+   "family": "Bladimil Cabrera Baez",
+   "given": "Felix"
+  },
+  "SZB-80": {
+   "family": "WANG",
+   "given": "Yang - 王洋"
+  },
+  "SZB-88": {
+   "family": "TOUSSAINT",
+   "given": "Touki"
+  },
+  "SZB-9": {
+   "family": "SHAN",
+   "given": "Cheng-Ting"
+  },
+  "SZB-96": {
+   "family": "Liu",
+   "given": "WenJie"
+  },
+  "SZB-97": {
+   "family": "Wang",
+   "given": "PengFei"
+  },
+  "SZB-99": {
+   "family": "LIU",
+   "given": "Chia-Wei"
+  },
+  "XMD-0": {
+   "family": "WANG",
+   "given": "Ziqi"
+  },
+  "XMD-1": {
+   "family": "LIN",
+   "given": "Po-Yi"
+  },
+  "XMD-11": {
+   "family": "IWASAKI",
+   "given": "Yuta"
+  },
+  "XMD-12": {
+   "family": "Gervacio",
+   "given": "Yeury"
+  },
+  "XMD-13": {
+   "family": "CHEN",
+   "given": "Luo-Yang"
+  },
+  "XMD-14": {
+   "family": "VARGAS",
+   "given": "Andy"
+  },
+  "XMD-15": {
+   "family": "YI",
+   "given": "Jian"
+  },
+  "XMD-16": {
+   "family": "SÁNCHEZ",
+   "given": "Kevin"
+  },
+  "XMD-17": {
+   "family": "NINOMIYA",
+   "given": "Isaki"
+  },
+  "XMD-18": {
+   "family": "Melean",
+   "given": "Kelvin"
+  },
+  "XMD-20": {
+   "family": "YANG",
+   "given": "Hao-Jan"
+  },
+  "XMD-27": {
+   "family": "ZHANG",
+   "given": "Aiqi"
+  },
+  "XMD-3": {
+   "family": "YANG",
+   "given": "Lixuan"
+  },
+  "XMD-31": {
+   "family": "HERNANDEZ",
+   "given": "Pavel"
+  },
+  "XMD-32": {
+   "family": "CHUNG",
+   "given": "Kuo-Hua"
+  },
+  "XMD-33": {
+   "family": "Lee",
+   "given": "Jen-Hao"
+  },
+  "XMD-35": {
+   "family": "KIMOTO",
+   "given": "Takumi"
+  },
+  "XMD-36": {
+   "family": "HSU",
+   "given": "Zi-Shen"
+  },
+  "XMD-39": {
+   "family": "HU",
+   "given": "Jia-Long"
+  },
+  "XMD-43": {
+   "family": "PAN",
+   "given": "Chen-Yu"
+  },
+  "XMD-44": {
+   "family": "WANG",
+   "given": "Wei-Chen - 王维辰"
+  },
+  "XMD-45": {
+   "family": "HENRY",
+   "given": "Henry"
+  },
+  "XMD-47": {
+   "family": "HUANG",
+   "given": "Yung-Chuan"
+  },
+  "XMD-50": {
+   "family": "KANG",
+   "given": "San"
+  },
+  "XMD-51": {
+   "family": "GONZALEZ GARCIA",
+   "given": "Yasiel Andy"
+  },
+  "XMD-52": {
+   "family": "SU",
+   "given": "Yongquan"
+  },
+  "XMD-55": {
+   "family": "REN",
+   "given": "Suzuki"
+  },
+  "XMD-56": {
+   "family": "DUEÑAS MORE",
+   "given": "Armando Addiel"
+  },
+  "XMD-58": {
+   "family": "SÁNCHEZ DÍAZ",
+   "given": "Tailon"
+  },
+  "XMD-68": {
+   "family": "WANG",
+   "given": "Jun"
+  },
+  "XMD-69": {
+   "family": "SU",
+   "given": "Chieh-En"
+  },
+  "XMD-7": {
+   "family": "Noroña",
+   "given": "José"
+  },
+  "XMD-70": {
+   "family": "TEOH",
+   "given": "XI-KAI"
+  },
+  "XMD-71": {
+   "family": "Lu",
+   "given": "Yun"
+  },
+  "XMD-73": {
+   "family": "LI",
+   "given": "Chia-Hsiang"
+  },
+  "XMD-78": {
+   "family": "WATANABE",
+   "given": "Aki"
+  },
+  "XMD-8": {
+   "family": "HUANG",
+   "given": "Kun-Hao"
+  },
+  "XMD-9": {
+   "family": "EDUARDO MARQUEZ QUINTERO",
+   "given": "Emilio"
+  },
+  "XMD-99": {
+   "family": "HU",
+   "given": "Mengkui"
+  }
  },
  "teams": {
   "BJL": "Beijing CP Loongs",

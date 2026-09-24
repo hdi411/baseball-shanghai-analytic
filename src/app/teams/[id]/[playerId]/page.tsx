@@ -8,7 +8,7 @@ import {
   CHART_CATEGORY, CHART_TYPE_LABELS, positionLabel,
 } from "@/lib/types";
 import { getTeam } from "@/lib/store";
-import { bilingualName } from "@/lib/englishNames";
+import { EnglishName } from "@/components/EnglishName";
 import { getFile } from "@/lib/db";
 import { PitchZoneHeatMap, FirstPitchStrikeGauge, HitZoneHeatMap, PerspectiveToggle, BatsFilterToggle, filterByBats, isHitResult, trueAtBats } from "@/components/PlayerCharts";
 
@@ -205,7 +205,7 @@ export default function PlayerPage() {
           </button>
           <span className="text-gray-600">/</span>
           <span className="text-white font-medium">
-            #{player.number} {bilingualName(team, player)}
+            #{player.number} {player.name || "?"} <EnglishName team={team} player={player} className="text-sm ml-1 text-gray-300" />
           </span>
           <div className="ml-auto flex gap-2 text-sm text-gray-400">
             {player.throws && <span>投：{player.throws}</span>}
