@@ -5,6 +5,7 @@ import Link from "next/link";
 import { getTeam, getTeamList } from "@/lib/store";
 import type { Team, Player } from "@/lib/types";
 import { positionLabel } from "@/lib/types";
+import { bilingualName } from "@/lib/englishNames";
 import { isHitResult, trueAtBats } from "@/components/PlayerCharts";
 
 const LINEUP_SIZE = 9;
@@ -115,7 +116,7 @@ function LineupPanel({
           >
             <option value="">未选择</option>
             {sorted.map((p) => (
-              <option key={p.id} value={p.id}>#{p.number} {p.name || "?"} ({positionLabel(p)})</option>
+              <option key={p.id} value={p.id}>#{p.number} {bilingualName(team, p)} ({positionLabel(p)})</option>
             ))}
           </select>
 
@@ -131,7 +132,7 @@ function LineupPanel({
                 >
                   <option value="">未选择</option>
                   {sorted.map((p) => (
-                    <option key={p.id} value={p.id}>#{p.number} {p.name || "?"} ({positionLabel(p)})</option>
+                    <option key={p.id} value={p.id}>#{p.number} {bilingualName(team, p)} ({positionLabel(p)})</option>
                   ))}
                 </select>
               </div>
@@ -179,7 +180,7 @@ function AnalysisPanel({ team, lineup, pitcherId }: { team: Team | null; lineup:
             return (
               <div key={p.id} className="text-sm">
                 <div className="flex items-baseline gap-2 flex-wrap">
-                  <span className="font-medium text-white">#{p.number} {p.name || "?"}</span>
+                  <span className="font-medium text-white">#{p.number} {bilingualName(team, p)}</span>
                   <span className="text-xs" style={{ color: "#64748b" }}>
                     {stats.trueAB > 0 ? `${stats.avg.toFixed(3)} (${stats.hits}/${stats.trueAB})` : "暂无数据"}
                     {stats.pa > 0 && ` · K${stats.k} BB${stats.bb} · 首球好球${Math.round(stats.fpsRate * 100)}%`}

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { getTeamList, createTeam, addPlayer, addChart } from "@/lib/store";
 import { saveFile } from "@/lib/db";
 import type { Team, Player, ChartType, Position } from "@/lib/types";
+import { bilingualName } from "@/lib/englishNames";
 import { CHART_TYPE_LABELS, CHART_TYPE_EN, POSITIONS, positionLabel } from "@/lib/types";
 
 const CHART_TYPES: ChartType[] = [
@@ -219,7 +220,7 @@ function UploadPage() {
             <select className="input select" value={selectedPlayerId} onChange={(e) => setSelectedPlayerId(e.target.value)} disabled={!selectedTeamId}>
               <option value="">— 選擇球員 —</option>
               {currentTeam?.players.map((p) => (
-                <option key={p.id} value={p.id}>#{p.number} {p.name} ({positionLabel(p)})</option>
+                <option key={p.id} value={p.id}>#{p.number} {currentTeam ? bilingualName(currentTeam, p) : p.name} ({positionLabel(p)})</option>
               ))}
             </select>
           </div>

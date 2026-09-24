@@ -15,3 +15,9 @@ export function englishTeamName(team: Team): string {
 export function englishPlayerName(team: Team, player: Player): string {
   return (namesEn.players as Record<string, string>)[`${teamCode(team)}-${parseInt(player.number, 10)}`] ?? "";
 }
+
+// "陈冠勋 Chen Guan Xun" — Chinese name followed by the English one (left out when unknown).
+export function bilingualName(team: Team, player: Player): string {
+  const en = englishPlayerName(team, player);
+  return `${player.name || (en ? "" : "?")}${player.name && en ? " " : ""}${en}`;
+}

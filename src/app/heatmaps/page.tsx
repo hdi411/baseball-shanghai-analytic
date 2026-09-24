@@ -5,7 +5,7 @@ import Link from "next/link";
 import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
 import { getTeam, getTeamList } from "@/lib/store";
-import { englishPlayerName, englishTeamName } from "@/lib/englishNames";
+import { bilingualName, englishPlayerName, englishTeamName } from "@/lib/englishNames";
 import type { Team, Player } from "@/lib/types";
 import { positionLabel } from "@/lib/types";
 import { HitZoneHeatMap, PitchZoneHeatMap, PerspectiveToggle, BatsViewToggle, filterByBats, trueAtBats } from "@/components/PlayerCharts";
@@ -165,7 +165,7 @@ function PlayerHeatCard({
       ...(print ? { border: "1px solid #999999" } : {}),
     }}>
       <div className="flex items-baseline gap-3 flex-wrap mb-4">
-        <span className="text-lg font-bold text-white" style={ink}>#{player.number} {player.name || "?"}</span>
+        <span className="text-lg font-bold text-white" style={ink}>#{player.number} {bilingualName(team, player)}</span>
         <span className="text-sm text-slate-300" style={inkMid}>{positionLabel(player)}</span>
         <span className="text-sm text-slate-400" style={inkMid}>{team.name}</span>
         {trueAB > 0 && (
@@ -352,7 +352,7 @@ export default function HeatmapExportPage() {
                       style={{ color: ok ? "#e2e8f0" : "#475569", cursor: ok ? "pointer" : "not-allowed" }}>
                       <input type="checkbox" disabled={!ok}
                         checked={selected.has(p.id)} onChange={() => toggle(p.id)} />
-                      <span className="truncate">#{p.number} {p.name || "?"}</span>
+                      <span className="truncate">#{p.number} {team ? bilingualName(team, p) : p.name || "?"}</span>
                       <span className="text-xs" style={{ color: "#64748b" }}>{ok ? positionLabel(p) : "无数据"}</span>
                     </label>
                   );

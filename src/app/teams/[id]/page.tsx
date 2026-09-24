@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { getTeam } from "@/lib/store";
 import type { Team } from "@/lib/types";
 import { positionLabel } from "@/lib/types";
+import { englishPlayerName } from "@/lib/englishNames";
 
 const POSITION_COLORS: Record<string, string> = {
   P: "#3b82f6", C: "#8b5cf6", "1B": "#f59e0b", "2B": "#f59e0b",
@@ -29,6 +30,7 @@ export default function TeamPage() {
 
   const filtered = team.players.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
+    englishPlayerName(team, p).toLowerCase().includes(search.toLowerCase()) ||
     p.number.includes(search) ||
     positionLabel(p).toLowerCase().includes(search.toLowerCase())
   );
@@ -99,6 +101,9 @@ export default function TeamPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold text-white truncate">{player.name || `#${player.number}`}</div>
+                        {englishPlayerName(team, player) && (
+                          <div className="text-xs truncate" style={{ color: "#94a3b8" }}>{englishPlayerName(team, player)}</div>
+                        )}
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="badge text-white text-xs" style={{ background: POSITION_COLORS[player.position] ?? "#64748b" }}>{positionLabel(player)}</span>
                           {player.bats && <span className="text-xs" style={{ color: "#64748b" }}>打:{player.bats}</span>}
