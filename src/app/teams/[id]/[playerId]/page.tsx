@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import {
   Team, Player, ChartFile, ChartCategory,
   GameStat, AtBat, PitchLocationStat,
-  CHART_CATEGORY, CHART_TYPE_LABELS,
+  CHART_CATEGORY, CHART_TYPE_LABELS, positionLabel,
 } from "@/lib/types";
 import { getTeam } from "@/lib/store";
 import { getFile } from "@/lib/db";
@@ -209,7 +209,7 @@ export default function PlayerPage() {
           <div className="ml-auto flex gap-2 text-sm text-gray-400">
             {player.throws && <span>投：{player.throws}</span>}
             {player.bats   && <span>打：{player.bats}</span>}
-            <span>{player.position}</span>
+            <span>{positionLabel(player)}</span>
           </div>
         </div>
       </nav>

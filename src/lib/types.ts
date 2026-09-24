@@ -32,6 +32,13 @@ export const POSITIONS = [
 ] as const;
 export type Position = typeof POSITIONS[number];
 
+// What to show for a player's position: pitchers read LHP / RHP (by throwing hand),
+// everyone else keeps their fielding position. The stored value stays "P".
+export function positionLabel(p: { position: string; throws?: "R" | "L" }): string {
+  if (p.position !== "P") return p.position;
+  return p.throws === "L" ? "LHP" : p.throws === "R" ? "RHP" : "P";
+}
+
 export interface AtBat {
   result: string;           // "1-3", "6H", "7HR", "K", "BB", ">" etc.
   firstPitchStrike: boolean; // true = Y, false = N

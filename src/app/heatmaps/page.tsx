@@ -7,6 +7,7 @@ import { jsPDF } from "jspdf";
 import { getTeam, getTeamList } from "@/lib/store";
 import { englishPlayerName, englishTeamName } from "@/lib/englishNames";
 import type { Team, Player } from "@/lib/types";
+import { positionLabel } from "@/lib/types";
 import { HitZoneHeatMap, PitchZoneHeatMap, PerspectiveToggle, BatsViewToggle, filterByBats, trueAtBats } from "@/components/PlayerCharts";
 
 const DARK_CARD_BG = "#1e293b";
@@ -165,7 +166,7 @@ function PlayerHeatCard({
     }}>
       <div className="flex items-baseline gap-3 flex-wrap mb-4">
         <span className="text-lg font-bold text-white" style={ink}>#{player.number} {player.name || "?"}</span>
-        <span className="text-sm text-slate-300" style={inkMid}>{player.position}</span>
+        <span className="text-sm text-slate-300" style={inkMid}>{positionLabel(player)}</span>
         <span className="text-sm text-slate-400" style={inkMid}>{team.name}</span>
         {trueAB > 0 && (
           <span className="text-sm text-slate-400 ml-auto" style={inkMid}>
@@ -352,7 +353,7 @@ export default function HeatmapExportPage() {
                       <input type="checkbox" disabled={!ok}
                         checked={selected.has(p.id)} onChange={() => toggle(p.id)} />
                       <span className="truncate">#{p.number} {p.name || "?"}</span>
-                      <span className="text-xs" style={{ color: "#64748b" }}>{ok ? p.position : "无数据"}</span>
+                      <span className="text-xs" style={{ color: "#64748b" }}>{ok ? positionLabel(p) : "无数据"}</span>
                     </label>
                   );
                 })}

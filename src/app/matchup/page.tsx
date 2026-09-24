@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getTeam, getTeamList } from "@/lib/store";
 import type { Team, Player } from "@/lib/types";
+import { positionLabel } from "@/lib/types";
 import { isHitResult, trueAtBats } from "@/components/PlayerCharts";
 
 const LINEUP_SIZE = 9;
@@ -114,7 +115,7 @@ function LineupPanel({
           >
             <option value="">未选择</option>
             {sorted.map((p) => (
-              <option key={p.id} value={p.id}>#{p.number} {p.name || "?"} ({p.position})</option>
+              <option key={p.id} value={p.id}>#{p.number} {p.name || "?"} ({positionLabel(p)})</option>
             ))}
           </select>
 
@@ -130,7 +131,7 @@ function LineupPanel({
                 >
                   <option value="">未选择</option>
                   {sorted.map((p) => (
-                    <option key={p.id} value={p.id}>#{p.number} {p.name || "?"} ({p.position})</option>
+                    <option key={p.id} value={p.id}>#{p.number} {p.name || "?"} ({positionLabel(p)})</option>
                   ))}
                 </select>
               </div>
