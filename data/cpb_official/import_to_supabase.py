@@ -7,7 +7,9 @@ Populates:
                          'L' and 'R' — splitting their thrown pitches by the
                          batter's handedness. Switch hitters ('S'/unknown) are
                          left out of the split but still count in the plain,
-                         vs_bats=NULL row.)
+                         vs_bats=NULL row. That plain row also carries
+                         count_counts for pitchers: what their pitches turned
+                         out to be, for every ball-strike count.)
   game_stats.at_bats    (per-plate-appearance result / firstPitchStrike / pitchZone)
 
 Matching: CPB numeric team/player ids -> our Supabase rows, via
@@ -509,6 +511,11 @@ def process_game(path, code_to_team_id, team_number_to_player, team_id_to_name, 
     # same as thrown_zone_counts_by_pitcher, but split by the batter's handedness
     # (bats 'S'/unknown can't be classified and is left out of both)
     thrown_zone_counts_by_pitcher_vs = {"L": {}, "R": {}}
+    # what a pitcher's pitches turned out to be at each ball-strike count:
+    # {pitcher_id: {"0-0".."3-2": {pitch type: n}}}. The count fields on a play row are the
+    # count *before* the pitch (a strikeout pitch reads 2 strikes), and every pitch type
+    # counts here, balls and hit-by-pitches included.
+    count_by_pitcher = {}
     team_id_by_player = {}
     at_bats_by_player = {}
     batting_order_by_player = {}
@@ -545,6 +552,9 @@ def process_game(path, code_to_team_id, team_number_to_player, team_id_to_name, 
             unresolved.add(row["pitcherid"])
         else:
             team_id_by_player[pitcher_id] = pitcher_team_id
+            if row.get("strikes") in (0, 1, 2) and row.get("balls") in (0, 1, 2, 3):
+                at_count = count_by_pitcher.setdefault(pitcher_id, {}).setdefault(f"{row['balls']}-{row['strikes']}", {})
+                at_count[ptype] = at_count.get(ptype, 0) + 1
             if ptype in LOCATED_TYPES:
                 idx = zone_index(row["pitchoutside"], row["pitchheight"])
                 zc = thrown_zone_counts_by_pitcher.setdefault(pitcher_id, [0] * 25)
@@ -580,13 +590,16 @@ def process_game(path, code_to_team_id, team_number_to_player, team_id_to_name, 
         if sum(zc) == 0:
             continue
         team_id = team_id_by_player.get(player_id)
-        rows_pitch_location.append({
+        row = {
             "player_id": player_id,
             "game_date": game_date,
             "opponent": opponent_name_for(team_id),
             "zone_counts": zc,
             "vs_bats": None,
-        })
+        }
+        if player_id in count_by_pitcher:
+            row["count_counts"] = count_by_pitcher[player_id]
+        rows_pitch_location.append(row)
     for bats, by_pitcher in thrown_zone_counts_by_pitcher_vs.items():
         for player_id, zc in by_pitcher.items():
             if sum(zc) == 0:
@@ -636,7 +649,7 @@ def main():
     # (e.g. a sac-bunt narrative that also matched "fielders choice" text used to
     # get mislabeled "FC" instead of "SAC") — those need their at_bats corrected
     # in place, not silently left stale.
-    existing_pls = sb_get_all("pitch_location_stats?select=id,player_id,game_date,zone_counts,vs_bats")
+    existing_pls = sb_get_all("pitch_location_stats?select=id,player_id,game_date,zone_counts,vs_bats,count_counts")
     existing_gs = sb_get_all("game_stats?select=id,player_id,game_date,at_bats")
     # vs_bats is part of the key so the plain (NULL) row and its two L/R splits
     # for the same player+game don't collide with each other.
@@ -663,12 +676,15 @@ def main():
                     status, res = sb_request("POST", "pitch_location_stats", body=row)
                     if status >= 300:
                         print(f"  FAILED pitch_location_stats insert {row['player_id']} {row['game_date']}: {res}")
-            elif [int(v) for v in existing["zone_counts"]] != row["zone_counts"]:
+            elif ([int(v) for v in existing["zone_counts"]] != row["zone_counts"]
+                  or existing.get("count_counts") != row.get("count_counts")):
                 total_updated_pls += 1
                 if commit:
+                    body = {"zone_counts": row["zone_counts"]}
+                    if "count_counts" in row:
+                        body["count_counts"] = row["count_counts"]
                     status, res = sb_request(
-                        "PATCH", f"pitch_location_stats?id=eq.{existing['id']}",
-                        body={"zone_counts": row["zone_counts"]},
+                        "PATCH", f"pitch_location_stats?id=eq.{existing['id']}", body=body,
                     )
                     if status >= 300:
                         print(f"  FAILED pitch_location_stats update {row['player_id']} {row['game_date']}: {res}")

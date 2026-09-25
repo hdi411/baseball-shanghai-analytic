@@ -154,6 +154,36 @@ export function PerspectiveToggle({
   );
 }
 
+// ── Card content toggle (热区 / 球数) ─────────────────────────────────────────
+// Heatmap export page only: whether a pitcher's card shows the pitch-location heatmap
+// ("zone") or the results by ball-strike count ("count").
+export function ContentViewToggle({
+  value, onChange,
+}: {
+  value: "zone" | "count";
+  onChange: (v: "zone" | "count") => void;
+}) {
+  const opts: { key: "zone" | "count"; label: string }[] = [
+    { key: "zone", label: "热区" },
+    { key: "count", label: "球数" },
+  ];
+  return (
+    <div className="inline-flex rounded-lg overflow-hidden" style={{ border: "1px solid #334155" }}>
+      {opts.map((o) => (
+        <button key={o.key} type="button" onClick={() => onChange(o.key)}
+          className="text-sm px-3 py-1.5"
+          style={{
+            background: value === o.key ? "#22c55e" : "transparent",
+            color: value === o.key ? "#0f172a" : "#94a3b8",
+            fontWeight: 500,
+          }}>
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ── Bats-split VIEW toggle (全部 / 左右打者) ───────────────────────────────────
 // Heatmap export page only: whether a pitcher's thrown-pitch chart shows one
 // combined heatmap ("全部") or the vs-LHB / vs-RHB pair side by side ("左右打者").
@@ -219,6 +249,120 @@ export function BatsFilterToggle({
 // (vsBats undefined) rows for "全部", or the matching split rows for L/R.
 export function filterByBats(stats: PitchLocationStat[], batsFilter: "L" | "R" | null): PitchLocationStat[] {
   return stats.filter((s) => (batsFilter === null ? s.vsBats === undefined : s.vsBats === batsFilter));
+}
+
+// ── Pitches by count (pitchers) ──────────────────────────────────────────────
+const COUNT_TYPES: { key: string; label: string }[] = [
+  { key: "ball", label: "坏球 Ball" },
+  { key: "called_strike", label: "看进好球 Called" },
+  { key: "swinging_strike", label: "挥空 Swinging" },
+  { key: "foul", label: "界外 Foul" },
+  { key: "in_play", label: "击球入场 In play" },
+];
+const STRIKE_TYPES = ["called_strike", "swinging_strike", "foul"];
+// every ball-strike count, in the usual order: 0-0, 0-1, 0-2, 1-0, ...
+const ALL_COUNTS = [0, 1, 2, 3].flatMap((b) => [0, 1, 2].map((s) => `${b}-${s}`));
+
+const pct = (n: number, d: number) => (d > 0 ? `${((n / d) * 100).toFixed(1)}%` : "—");
+
+// How a pitcher's pitches turn out at every ball-strike count: the ball / strike split
+// (strike = called + swinging + foul; balls put in play and hit batters are neither),
+// plus the full mix of results. Two-strike counts are shaded, since that is where it matters most.
+//
+// `print` is the black-and-white version for the export page: plain black text, grey lines and
+// shading, no green / red.
+export function CountPanel({ stats, print = false }: { stats: PitchLocationStat[]; print?: boolean }) {
+  const ink = print ? { color: PRINT_INK } : undefined;
+  const inkMid = print ? { color: "#333333" } : undefined;
+  const byCount: Record<string, Record<string, number>> = {};
+  for (const s of stats) {
+    for (const [count, types] of Object.entries(s.countCounts ?? {})) {
+      const acc = (byCount[count] ??= {});
+      for (const [type, n] of Object.entries(types)) acc[type] = (acc[type] ?? 0) + n;
+    }
+  }
+  const sumOf = (types: Record<string, number> | undefined, keys?: string[]) =>
+    Object.entries(types ?? {}).reduce((t, [k, n]) => (!keys || keys.includes(k) ? t + n : t), 0);
+  const merge = (counts: string[]) => {
+    const out: Record<string, number> = {};
+    for (const c of counts) for (const [k, n] of Object.entries(byCount[c] ?? {})) out[k] = (out[k] ?? 0) + n;
+    return out;
+  };
+  const overall = merge(ALL_COUNTS);
+  const total = sumOf(overall);
+  if (total === 0) return <div className="text-gray-400 text-sm">暂无投球数据</div>;
+
+  const games = stats.filter((s) => s.countCounts).length;
+  const twoStrike = merge(ALL_COUNTS.filter((c) => c.endsWith("-2")));
+
+  // 好球 / 坏球 headline for a set of pitches
+  const headline = (label: string, types: Record<string, number>) => {
+    const strikes = sumOf(types, STRIKE_TYPES);
+    const balls = sumOf(types, ["ball"]);
+    return (
+      <div>
+        <div className={`text-xs mb-1 ${print ? "" : "text-gray-400"}`} style={inkMid}>{label}（{sumOf(types)} 球）</div>
+        <div className="flex items-baseline gap-4">
+          <span className={`text-2xl font-bold ${print ? "" : "text-green-400"}`} style={ink}>{pct(strikes, strikes + balls)}<span className={`text-xs font-normal ml-1 ${print ? "" : "text-gray-400"}`} style={inkMid}>好球 Strike</span></span>
+          <span className={`text-2xl font-bold ${print ? "" : "text-red-400"}`} style={ink}>{pct(balls, strikes + balls)}<span className={`text-xs font-normal ml-1 ${print ? "" : "text-gray-400"}`} style={inkMid}>坏球 Ball</span></span>
+        </div>
+      </div>
+    );
+  };
+
+  const row = (label: string, types: Record<string, number> | undefined, opts: { shade?: boolean; bold?: boolean } = {}) => {
+    const n = sumOf(types);
+    const strikes = sumOf(types, STRIKE_TYPES);
+    const balls = sumOf(types, ["ball"]);
+    return (
+      <tr key={label}
+        className={`border-t ${print ? "" : opts.bold ? "border-gray-600" : "border-gray-700"} ${opts.bold ? "font-semibold" : ""}`}
+        style={{
+          ...(print ? { borderColor: PRINT_GRID, color: PRINT_INK } : {}),
+          ...(opts.shade ? { background: print ? "rgba(0,0,0,0.07)" : "rgba(148,163,184,0.08)" } : {}),
+        }}>
+        <td className={`py-2 pr-4 ${opts.bold || print ? "" : "text-gray-300"}`}>{label}</td>
+        <td className={`py-2 px-2 text-right ${print ? "" : "text-green-400"}`}>{pct(strikes, strikes + balls)}</td>
+        <td className={`py-2 px-2 text-right ${print ? "" : "text-red-400"}`}>{pct(balls, strikes + balls)}</td>
+        {COUNT_TYPES.map((t) => (
+          <td key={t.key} className="py-2 px-2 text-right">
+            {n > 0 ? <>{types?.[t.key] ?? 0}<span className={`text-xs ml-1 ${print ? "" : "text-gray-500"}`} style={inkMid}>{pct(types?.[t.key] ?? 0, n)}</span></> : <span className={print ? "" : "text-gray-600"} style={print ? { color: PRINT_GRID } : undefined}>—</span>}
+          </td>
+        ))}
+      </tr>
+    );
+  };
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-end gap-x-12 gap-y-3 mb-4">
+        {headline("全部球数 All counts", overall)}
+        {headline("两好球后 Two strikes", twoStrike)}
+        <div className={`text-xs ${print ? "" : "text-gray-500"}`} style={inkMid}>
+          共 {total} 球（{games} 场）　好坏球比例不含击球入场、触身
+        </div>
+      </div>
+
+      <div className={print ? "" : "overflow-x-auto"}>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className={`text-xs ${print ? "" : "text-gray-400"}`} style={inkMid}>
+              <th className="text-left font-normal py-2 pr-4">球数 Count</th>
+              <th className="text-right font-normal py-2 px-2 whitespace-nowrap">好球 Strike%</th>
+              <th className="text-right font-normal py-2 px-2 whitespace-nowrap">坏球 Ball%</th>
+              {COUNT_TYPES.map((t) => (
+                <th key={t.key} className="text-right font-normal py-2 px-2 whitespace-nowrap">{t.label}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {ALL_COUNTS.map((c) => row(c, byCount[c], { shade: c.endsWith("-2") }))}
+            {row("合计 Total", overall, { bold: true })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
 
 // ── First Pitch Strike Gauge ─────────────────────────────────────────────────

@@ -9,7 +9,7 @@ import { englishPlayerName, englishTeamName } from "@/lib/englishNames";
 import { EnglishName } from "@/components/EnglishName";
 import type { Team, Player } from "@/lib/types";
 import { positionLabel } from "@/lib/types";
-import { HitZoneHeatMap, PitchZoneHeatMap, PerspectiveToggle, BatsViewToggle, filterByBats, trueAtBats } from "@/components/PlayerCharts";
+import { HitZoneHeatMap, PitchZoneHeatMap, PerspectiveToggle, BatsViewToggle, ContentViewToggle, CountPanel, filterByBats, trueAtBats } from "@/components/PlayerCharts";
 
 const DARK_CARD_BG = "#1e293b";
 const PRINT_CARD_BG = "#ffffff";
@@ -92,13 +92,14 @@ function addCardPage(pdf: jsPDF, dataUrl: string, isFirst: boolean, print: boole
 // The exported image is exactly this node, so anything not meant to be in the
 // picture (buttons, checkboxes) has to live outside it.
 function PlayerHeatCard({
-  player, team, print, perspective, batsView, setRef,
+  player, team, print, perspective, batsView, contentView, setRef,
 }: {
   player: Player;
   team: Team;
   print: boolean;
   perspective: "pitcher" | "catcher" | null;
   batsView: "all" | "split";
+  contentView: "zone" | "count";
   setRef: (el: HTMLDivElement | null) => void;
 }) {
   const ink = print ? { color: "#111111" } : undefined;
@@ -121,9 +122,19 @@ function PlayerHeatCard({
   // of one filtered chart, so both are visible at once on the printed card. A count
   // reconciliation line accounts for every thrown pitch, including the few thrown to
   // switch hitters / unresolved batters that can't be put in either column.
-  const hasSplit = isPitcher && batsView === "split" && player.pitchLocationStats.some((s) => s.vsBats);
+  // "count" view: a pitcher's card shows results by ball-strike count instead of the heatmap
+  // (anyone without count data keeps their heatmap)
+  const showCount = isPitcher && contentView === "count" && player.pitchLocationStats.some((s) => s.countCounts);
+  const hasSplit = !showCount && isPitcher && batsView === "split" && player.pitchLocationStats.some((s) => s.vsBats);
   let pitchBlock: ReactNode = false;
-  if (hasSplit) {
+  if (showCount) {
+    pitchBlock = (
+      <div key="pitch" style={{ flex: 1, minWidth: 0 }}>
+        <div className="text-sm font-semibold text-white mb-3" style={ink}>各球数下的投球 Pitches by Count</div>
+        <CountPanel stats={filterByBats(player.pitchLocationStats, null)} print={print} />
+      </div>
+    );
+  } else if (hasSplit) {
     const sum = (stats: typeof player.pitchLocationStats) =>
       stats.reduce((t, s) => t + s.zoneCounts.reduce((a, b) => a + b, 0), 0);
     const lStats = filterByBats(player.pitchLocationStats, "L");
@@ -162,7 +173,7 @@ function PlayerHeatCard({
 
   return (
     <div ref={setRef} style={{
-      width: hasSplit ? 900 : 720, background: print ? PRINT_CARD_BG : DARK_CARD_BG, padding: 20, borderRadius: 12,
+      width: showCount ? 960 : hasSplit ? 900 : 720, background: print ? PRINT_CARD_BG : DARK_CARD_BG, padding: 20, borderRadius: 12,
       ...(print ? { border: "1px solid #999999" } : {}),
     }}>
       <div className="flex items-baseline gap-3 flex-wrap mb-4">
@@ -198,6 +209,8 @@ export default function HeatmapExportPage() {
   const [perspective, setPerspective] = useState<"pitcher" | "catcher" | null>(null);
   // pitchers with handedness data: one combined chart ("all") or vs-LHB/vs-RHB side by side ("split")
   const [batsView, setBatsView] = useState<"all" | "split">("all");
+  // what a pitcher's card shows: the pitch-location heatmap, or results by ball-strike count
+  const [contentView, setContentView] = useState<"zone" | "count">("zone");
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
@@ -319,7 +332,13 @@ export default function HeatmapExportPage() {
                 </span>
                 <span className="text-xs ml-auto" style={{ color: "#64748b" }}>视角</span>
                 <PerspectiveToggle value={perspective} onChange={setPerspective} />
-                {players.some((p) => p.position === "P" && p.pitchLocationStats.some((s) => s.vsBats)) && (
+                {players.some((p) => p.position === "P" && p.pitchLocationStats.some((s) => s.countCounts)) && (
+                  <>
+                    <span className="text-xs" style={{ color: "#64748b" }}>内容</span>
+                    <ContentViewToggle value={contentView} onChange={setContentView} />
+                  </>
+                )}
+                {contentView === "zone" && players.some((p) => p.position === "P" && p.pitchLocationStats.some((s) => s.vsBats)) && (
                   <>
                     <span className="text-xs" style={{ color: "#64748b" }}>对战</span>
                     <BatsViewToggle value={batsView} onChange={setBatsView} />
@@ -372,7 +391,7 @@ export default function HeatmapExportPage() {
           <div className="flex flex-wrap gap-6">
             {selectedPlayers.map((p) => (
               <div key={p.id}>
-                <PlayerHeatCard player={p} team={team} print={printMode} perspective={perspective} batsView={batsView} setRef={(el) => { cardRefs.current[p.id] = el; }} />
+                <PlayerHeatCard player={p} team={team} print={printMode} perspective={perspective} batsView={batsView} contentView={contentView} setRef={(el) => { cardRefs.current[p.id] = el; }} />
                 <div className="mt-2 text-right">
                   <button className="btn btn-ghost text-sm" disabled={busy !== null} onClick={() => downloadOne(p)}>
                     {busy === p.id ? "导出中..." : "下载 PDF"}

@@ -10,7 +10,7 @@ import {
 import { getTeam } from "@/lib/store";
 import { EnglishName } from "@/components/EnglishName";
 import { getFile } from "@/lib/db";
-import { PitchZoneHeatMap, FirstPitchStrikeGauge, HitZoneHeatMap, PerspectiveToggle, BatsFilterToggle, filterByBats, isHitResult, trueAtBats } from "@/components/PlayerCharts";
+import { PitchZoneHeatMap, FirstPitchStrikeGauge, HitZoneHeatMap, PerspectiveToggle, BatsFilterToggle, CountPanel, filterByBats, isHitResult, trueAtBats } from "@/components/PlayerCharts";
 
 // ── Spray Chart ──────────────────────────────────────────────────────────────
 const FIELD_POS: Record<number, [number, number]> = {
@@ -367,6 +367,17 @@ export default function PlayerPage() {
                   <span className="text-sm font-normal text-gray-400">{isPitcher ? "Pitch Locations" : "Faced Pitches"}</span>
                 </h3>
                 <PitchZoneHeatMap stats={filterByBats(player.pitchLocationStats, isPitcher ? batsFilter : null)} isPitcher={isPitcher} perspective={perspective ?? undefined} batterHand={batterHand} />
+              </div>
+            )}
+
+            {/* ── Pitches by count (pitchers only) ───────────────────────── */}
+            {isPitcher && player.pitchLocationStats.some((s) => s.countCounts) && (
+              <div className="bg-gray-800 rounded-lg p-6">
+                <h3 className="text-lg font-semibold mb-4">
+                  各球数下的投球{" "}
+                  <span className="text-sm font-normal text-gray-400">Pitches by Count</span>
+                </h3>
+                <CountPanel stats={filterByBats(player.pitchLocationStats, null)} />
               </div>
             )}
 

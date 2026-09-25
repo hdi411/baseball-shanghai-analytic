@@ -73,6 +73,10 @@ export interface PitchLocationStat {
   // Pitchers only: undefined = all batters combined; "L"/"R" = a split by the
   // opposing batter's handedness (switch hitters aren't split, see importer).
   vsBats?: "L" | "R";
+  // Pitchers only, on the all-batters row: what their pitches turned out to be at each
+  // ball-strike count ("0-0" .. "3-2"), by pitch type
+  // (ball / called_strike / swinging_strike / foul / in_play / hbp) -> count.
+  countCounts?: Record<string, Record<string, number>>;
 }
 
 export interface Player {
