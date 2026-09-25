@@ -253,21 +253,23 @@ export function filterByBats(stats: PitchLocationStat[], batsFilter: "L" | "R" |
 
 // ── Pitches by count (pitchers) ──────────────────────────────────────────────
 const COUNT_TYPES: { key: string; label: string }[] = [
-  { key: "ball", label: "坏球 Ball" },
   { key: "called_strike", label: "看进好球 Called" },
   { key: "swinging_strike", label: "挥空 Swinging" },
   { key: "foul", label: "界外 Foul" },
   { key: "in_play", label: "击球入场 In play" },
 ];
-const STRIKE_TYPES = ["called_strike", "swinging_strike", "foul"];
+// 好球 = anything that is not a ball: called, swinging, foul and balls put in play; 坏球 = ball or hit batter
+const STRIKE_TYPES = ["called_strike", "swinging_strike", "foul", "in_play"];
+const BALL_TYPES = ["ball", "hbp"];
 // every ball-strike count, in the usual order: 0-0, 0-1, 0-2, 1-0, ...
 const ALL_COUNTS = [0, 1, 2, 3].flatMap((b) => [0, 1, 2].map((s) => `${b}-${s}`));
 
 const pct = (n: number, d: number) => (d > 0 ? `${((n / d) * 100).toFixed(1)}%` : "—");
 
-// How a pitcher's pitches turn out at every ball-strike count: the ball / strike split
-// (strike = called + swinging + foul; balls put in play and hit batters are neither),
-// plus the full mix of results. Two-strike counts are shaded, since that is where it matters most.
+// How a pitcher's pitches turn out at every ball-strike count: the strike / ball share
+// (strike = called + swinging + foul + in play; ball = ball + hit batter, so the two add up
+// to 100%) and the full mix of results. Every percentage has the same denominator: all the
+// pitches thrown at that count. Two-strike counts are shaded, since that is where it matters most.
 //
 // `print` is the black-and-white version for the export page: plain black text, grey lines and
 // shading, no green / red.
@@ -298,13 +300,13 @@ export function CountPanel({ stats, print = false }: { stats: PitchLocationStat[
   // 好球 / 坏球 headline for a set of pitches
   const headline = (label: string, types: Record<string, number>) => {
     const strikes = sumOf(types, STRIKE_TYPES);
-    const balls = sumOf(types, ["ball"]);
+    const balls = sumOf(types, BALL_TYPES);
     return (
       <div>
         <div className={`text-xs mb-1 ${print ? "" : "text-gray-400"}`} style={inkMid}>{label}（{sumOf(types)} 球）</div>
         <div className="flex items-baseline gap-4">
-          <span className={`text-2xl font-bold ${print ? "" : "text-green-400"}`} style={ink}>{pct(strikes, strikes + balls)}<span className={`text-xs font-normal ml-1 ${print ? "" : "text-gray-400"}`} style={inkMid}>好球 Strike</span></span>
-          <span className={`text-2xl font-bold ${print ? "" : "text-red-400"}`} style={ink}>{pct(balls, strikes + balls)}<span className={`text-xs font-normal ml-1 ${print ? "" : "text-gray-400"}`} style={inkMid}>坏球 Ball</span></span>
+          <span className={`text-2xl font-bold ${print ? "" : "text-green-400"}`} style={ink}>{pct(strikes, sumOf(types))}<span className={`text-xs font-normal ml-1 ${print ? "" : "text-gray-400"}`} style={inkMid}>好球 Strike</span></span>
+          <span className={`text-2xl font-bold ${print ? "" : "text-red-400"}`} style={ink}>{pct(balls, sumOf(types))}<span className={`text-xs font-normal ml-1 ${print ? "" : "text-gray-400"}`} style={inkMid}>坏球 Ball</span></span>
         </div>
       </div>
     );
@@ -313,7 +315,7 @@ export function CountPanel({ stats, print = false }: { stats: PitchLocationStat[
   const row = (label: string, types: Record<string, number> | undefined, opts: { shade?: boolean; bold?: boolean } = {}) => {
     const n = sumOf(types);
     const strikes = sumOf(types, STRIKE_TYPES);
-    const balls = sumOf(types, ["ball"]);
+    const balls = sumOf(types, BALL_TYPES);
     return (
       <tr key={label}
         className={`border-t ${print ? "" : opts.bold ? "border-gray-600" : "border-gray-700"} ${opts.bold ? "font-semibold" : ""}`}
@@ -322,11 +324,12 @@ export function CountPanel({ stats, print = false }: { stats: PitchLocationStat[
           ...(opts.shade ? { background: print ? "rgba(0,0,0,0.07)" : "rgba(148,163,184,0.08)" } : {}),
         }}>
         <td className={`py-2 pr-4 ${opts.bold || print ? "" : "text-gray-300"}`}>{label}</td>
-        <td className={`py-2 px-2 text-right ${print ? "" : "text-green-400"}`}>{pct(strikes, strikes + balls)}</td>
-        <td className={`py-2 px-2 text-right ${print ? "" : "text-red-400"}`}>{pct(balls, strikes + balls)}</td>
+        <td className="py-2 px-2 text-right">{n}</td>
+        <td className={`py-2 px-2 text-right ${print ? "" : "text-green-400"}`}>{pct(strikes, n)}</td>
+        <td className={`py-2 px-2 text-right ${print ? "" : "text-red-400"}`}>{pct(balls, n)}</td>
         {COUNT_TYPES.map((t) => (
           <td key={t.key} className="py-2 px-2 text-right">
-            {n > 0 ? <>{types?.[t.key] ?? 0}<span className={`text-xs ml-1 ${print ? "" : "text-gray-500"}`} style={inkMid}>{pct(types?.[t.key] ?? 0, n)}</span></> : <span className={print ? "" : "text-gray-600"} style={print ? { color: PRINT_GRID } : undefined}>—</span>}
+            {n > 0 ? pct(types?.[t.key] ?? 0, n) : <span className={print ? "" : "text-gray-600"} style={print ? { color: PRINT_GRID } : undefined}>—</span>}
           </td>
         ))}
       </tr>
@@ -339,7 +342,7 @@ export function CountPanel({ stats, print = false }: { stats: PitchLocationStat[
         {headline("全部球数 All counts", overall)}
         {headline("两好球后 Two strikes", twoStrike)}
         <div className={`text-xs ${print ? "" : "text-gray-500"}`} style={inkMid}>
-          共 {total} 球（{games} 场）　好坏球比例不含击球入场、触身
+          共 {total} 球（{games} 场）　好球 = 看进＋挥空＋界外＋击球入场　坏球 = 坏球＋触身　百分比都是占该球数全部投球的比例
         </div>
       </div>
 
@@ -348,6 +351,7 @@ export function CountPanel({ stats, print = false }: { stats: PitchLocationStat[
           <thead>
             <tr className={`text-xs ${print ? "" : "text-gray-400"}`} style={inkMid}>
               <th className="text-left font-normal py-2 pr-4">球数 Count</th>
+              <th className="text-right font-normal py-2 px-2">投球数</th>
               <th className="text-right font-normal py-2 px-2 whitespace-nowrap">好球 Strike%</th>
               <th className="text-right font-normal py-2 px-2 whitespace-nowrap">坏球 Ball%</th>
               {COUNT_TYPES.map((t) => (
