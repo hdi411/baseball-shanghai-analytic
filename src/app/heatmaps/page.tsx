@@ -51,14 +51,19 @@ function teamFileLabel(team: Team) {
   return joinName(team.shortName ?? team.name, englishTeamName(team));
 }
 
-// e.g. 上海虎鲸_Shanghai-Orcas_60_陈冠勋_Chen-Guan-Xun_热区图_Heatmap.pdf
-function fileNameFor(team: Team, p: Player) {
-  return `${joinName(team.shortName ?? team.name, englishTeamName(team), p.number, p.name || "球员", englishPlayerName(team, p), "热区图", "Heatmap")}.pdf`;
+// what the file is called after: the pitch-location heatmap or the results by count
+function contentLabel(contentView: "zone" | "count") {
+  return contentView === "count" ? ["球数", "Count"] : ["热区图", "Heatmap"];
 }
 
-// e.g. 上海虎鲸_Shanghai-Orcas_热区图_Heatmap.pdf
-function teamFileName(team: Team) {
-  return `${joinName(teamFileLabel(team), "热区图", "Heatmap")}.pdf`;
+// e.g. 上海虎鲸_Shanghai-Orcas_60_陈冠勋_Chen-Guan-Xun_热区图_Heatmap.pdf  (球数_Count.pdf in count view)
+function fileNameFor(team: Team, p: Player, contentView: "zone" | "count") {
+  return `${joinName(team.shortName ?? team.name, englishTeamName(team), p.number, p.name || "球员", englishPlayerName(team, p), ...contentLabel(contentView))}.pdf`;
+}
+
+// e.g. 上海虎鲸_Shanghai-Orcas_热区图_Heatmap.pdf  (球数_Count.pdf in count view)
+function teamFileName(team: Team, contentView: "zone" | "count") {
+  return `${joinName(teamFileLabel(team), ...contentLabel(contentView))}.pdf`;
 }
 
 // A4 landscape, one player per page. The page is filled with the app's own dark
@@ -270,7 +275,7 @@ export default function HeatmapExportPage() {
     try {
       const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4", compress: true });
       addCardPage(pdf, await renderCard(p.id), true, printMode);
-      triggerDownload(pdf.output("blob"), fileNameFor(team, p));
+      triggerDownload(pdf.output("blob"), fileNameFor(team, p, contentView));
     } catch (e) {
       console.error(e);
       alert("导出失败，请重试");
@@ -288,7 +293,7 @@ export default function HeatmapExportPage() {
         setProgress(`${i + 1}/${selectedPlayers.length}`);
         addCardPage(pdf, await renderCard(selectedPlayers[i].id), i === 0, printMode);
       }
-      triggerDownload(pdf.output("blob"), teamFileName(team));
+      triggerDownload(pdf.output("blob"), teamFileName(team, contentView));
     } catch (e) {
       console.error(e);
       alert("导出失败，请重试");
